@@ -1,34 +1,48 @@
 # Job Vacancy App
 
 ## Current State
-New project. No existing code.
+A job board app for India. Features:
+- Sticky header with logo and nav links
+- Hero section with stats
+- Filter bar (search, state, district, job type)
+- Job card grid with Apply Now modal
+- Footer
+
+No side menu or user authentication exists.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Job listings page showing vacancies with title, company, location (district/state), job type, salary range, brief description, and date posted
-- Filter bar with: state dropdown, district dropdown (dynamic based on state), job type dropdown, and search bar (by title or company)
-- "Apply Now" button on each job card opening a modal application form with: name, email, phone, resume upload, cover letter textarea, and submit with confirmation
-- At least 15 sample job listings across multiple states/districts and industries (Tech, Healthcare, Finance, Education, etc.)
-- Backend: store job listings, store applications submitted by users
+- Hamburger menu button in the header (top-left or alongside logo)
+- Slide-out side drawer (from the left) with 8 menu items:
+  1. Sign Up / Login -- opens a modal or panel for auth (simulated UI)
+  2. Themes -- lets user switch between light/dark/system themes
+  3. Locations -- shows a panel listing all states/districts covered
+  4. Your ID -- shows a "My Profile" card (placeholder with name/email if logged in, else prompt to sign up)
+  5. New Vacancy -- form to post a new job listing (title, company, location, type, salary, description)
+  6. Old Vacancy -- list of previously posted vacancies (placeholder data)
+  7. Draft Vacancy -- list of draft/unsaved vacancies (placeholder data)
+  8. Add Post -- simple form to compose a general job-related post/announcement
+- Close button and backdrop overlay for the drawer
+- Active menu item highlight
 
 ### Modify
-- Nothing (new project)
+- Header: add a menu toggle button (hamburger icon) on the left side
+- App layout: wrap in a context/state that tracks open drawer + active section
 
 ### Remove
-- Nothing (new project)
+- Nothing removed
 
 ## Implementation Plan
-1. Backend (Motoko):
-   - `Job` data type: id, title, company, district, state, jobType, salaryMin, salaryMax, description, datePosted
-   - `Application` data type: id, jobId, applicantName, email, phone, coverLetter, submittedAt
-   - `getJobs()` query: returns all jobs
-   - `submitApplication(jobId, applicantName, email, phone, coverLetter)` update: stores application, returns ok/err
-
-2. Frontend:
-   - Seed 15+ sample jobs in frontend state (static data, not from backend seed)
-   - Job listing cards with all required fields and hover effects
-   - Filter bar (top): state, district (dynamic), job type dropdowns + search bar
-   - Apply Now modal form with all fields; resume upload handled client-side (file input, not uploaded to backend)
-   - Confirmation message on successful submission (calls backend submitApplication)
-   - Responsive layout for mobile and desktop
+1. Create `SideMenu.tsx` component: slide-in drawer with framer-motion, backdrop, close button, 8 menu items with icons
+2. Create panel components for each menu item:
+   - `AuthPanel.tsx` (Sign Up / Login form)
+   - `ThemesPanel.tsx` (light/dark/system toggle)
+   - `LocationsPanel.tsx` (list of states and districts)
+   - `YourIdPanel.tsx` (user profile placeholder)
+   - `NewVacancyPanel.tsx` (post a new job form)
+   - `OldVacancyPanel.tsx` (list of past vacancies)
+   - `DraftVacancyPanel.tsx` (list of draft vacancies)
+   - `AddPostPanel.tsx` (compose a post form)
+3. Add theme context in `main.tsx` or a new `ThemeProvider`
+4. Update `App.tsx` to include the hamburger button and `SideMenu` with panel rendering

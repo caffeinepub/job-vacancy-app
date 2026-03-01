@@ -1,11 +1,18 @@
-import { Briefcase, MapPin, TrendingUp, Users } from "lucide-react";
+import { Toaster } from "@/components/ui/sonner";
+import { Briefcase, MapPin, Menu, TrendingUp, Users } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { JobType } from "./backend.d";
 import { ApplyModal } from "./components/ApplyModal";
 import { FilterBar, type Filters } from "./components/FilterBar";
 import { JobCard } from "./components/JobCard";
+import { PanelSheet } from "./components/PanelSheet";
+import { type PanelId, SideMenu } from "./components/SideMenu";
+import { applyStoredTheme } from "./components/panels/ThemesPanel";
 import { type JobListing, SAMPLE_JOBS } from "./data/jobs";
+
+// Apply stored theme on first render
+applyStoredTheme();
 
 const INITIAL_FILTERS: Filters = {
   search: "",
@@ -16,7 +23,7 @@ const INITIAL_FILTERS: Filters = {
 
 const STATS = [
   { icon: Briefcase, label: "Active Jobs", value: "20+" },
-  { icon: MapPin, label: "States Covered", value: "9" },
+  { icon: MapPin, label: "States Covered", value: "10" },
   { icon: Users, label: "Companies Hiring", value: "18+" },
   { icon: TrendingUp, label: "Industries", value: "7" },
 ];
@@ -24,6 +31,34 @@ const STATS = [
 export default function App() {
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
+
+  // Side menu state
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState<PanelId>(null);
+
+  // ESC key to close drawer
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        if (activePanel !== null) {
+          setActivePanel(null);
+        } else if (isDrawerOpen) {
+          setIsDrawerOpen(false);
+        }
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isDrawerOpen, activePanel]);
+
+  function handleMenuItemSelect(panel: PanelId) {
+    setActivePanel(panel);
+    // keep drawer open so user can switch panels
+  }
+
+  function handleStateFilter(state: string) {
+    setFilters((prev) => ({ ...prev, state, district: "all" }));
+  }
 
   const filteredJobs = useMemo(() => {
     const query = filters.search.toLowerCase().trim();
@@ -49,23 +84,54 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      {/* Side Drawer */}
+      <SideMenu
+        isOpen={isDrawerOpen}
+        activePanel={activePanel}
+        onClose={() => setIsDrawerOpen(false)}
+        onSelectPanel={handleMenuItemSelect}
+      />
+
+      {/* Panel Sheet (right side) */}
+      <PanelSheet
+        activePanel={activePanel}
+        onClose={() => setActivePanel(null)}
+        onStateFilter={handleStateFilter}
+        activeState={filters.state}
+      />
+
       {/* ──────────────── Header / Nav ──────────────── */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border shadow-xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Briefcase
-                className="w-4.5 h-4.5 text-primary-foreground"
-                style={{ width: "1.1rem", height: "1.1rem" }}
-              />
-            </div>
-            <div className="leading-none">
-              <span className="font-display font-bold text-lg text-foreground tracking-tight">
-                JobFinder
-              </span>
-              <span className="hidden sm:block text-[10px] text-muted-foreground -mt-0.5">
-                Malaysia's Job Board
-              </span>
+            {/* Hamburger Menu Button */}
+            <button
+              type="button"
+              onClick={() => setIsDrawerOpen(true)}
+              className="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors -ml-1"
+              aria-label="Open menu"
+              aria-expanded={isDrawerOpen}
+              aria-controls="side-menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <Briefcase
+                  className="w-4.5 h-4.5 text-primary-foreground"
+                  style={{ width: "1.1rem", height: "1.1rem" }}
+                />
+              </div>
+              <div className="leading-none">
+                <span className="font-display font-bold text-lg text-foreground tracking-tight">
+                  JobFinder
+                </span>
+                <span className="hidden sm:block text-[10px] text-muted-foreground -mt-0.5">
+                  India's Job Board
+                </span>
+              </div>
             </div>
           </div>
 
@@ -151,8 +217,8 @@ export default function App() {
               Step
             </h1>
             <p className="text-white/70 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">
-              Discover top opportunities across Malaysia — from Kuala Lumpur to
-              Sabah. Your ideal role is waiting.
+              Discover top opportunities across India — from Jammu &amp; Kashmir
+              to Kanyakumari. Your ideal role is waiting.
             </p>
           </motion.div>
 
@@ -254,7 +320,7 @@ export default function App() {
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Connecting talented professionals with leading employers across
-                Malaysia.
+                India.
               </p>
             </div>
             <div>
@@ -274,18 +340,17 @@ export default function App() {
                 Locations
               </h4>
               <ul className="space-y-1.5 text-sm text-muted-foreground">
-                <li>Kuala Lumpur</li>
-                <li>Selangor</li>
-                <li>Penang</li>
-                <li>Johor</li>
-                <li>Sabah, Sarawak & More</li>
+                <li>Delhi</li>
+                <li>Mumbai</li>
+                <li>Bengaluru</li>
+                <li>Hyderabad</li>
+                <li>Chennai, Kolkata & More</li>
               </ul>
             </div>
           </div>
           <div className="border-t border-border mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <p>
-              © {new Date().getFullYear()} JobFinder Malaysia. All rights
-              reserved.
+              © {new Date().getFullYear()} JobFinder India. All rights reserved.
             </p>
             <p>
               Built with ❤️ using{" "}
@@ -304,6 +369,9 @@ export default function App() {
 
       {/* Apply Modal */}
       <ApplyModal job={selectedJob} onClose={() => setSelectedJob(null)} />
+
+      {/* Toast Notifications */}
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 }
