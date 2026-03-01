@@ -9,12 +9,9 @@ import {
 } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
 import { JobType } from "../backend.d";
-import { STATES, getDistrictsForState } from "../data/jobs";
 
 export interface Filters {
   search: string;
-  state: string;
-  district: string;
   jobType: string;
 }
 
@@ -39,93 +36,47 @@ export function FilterBar({
   filteredCount,
   onChange,
 }: FilterBarProps) {
-  const districts =
-    filters.state !== "all" ? getDistrictsForState(filters.state) : [];
-
   function update(partial: Partial<Filters>) {
     onChange({ ...filters, ...partial });
   }
 
-  function handleStateChange(state: string) {
-    update({ state, district: "all" });
-  }
-
-  const hasActiveFilters =
-    filters.search !== "" ||
-    filters.state !== "all" ||
-    filters.district !== "all" ||
-    filters.jobType !== "all";
+  const hasActiveFilters = filters.search !== "" || filters.jobType !== "all";
 
   function clearAll() {
-    onChange({ search: "", state: "all", district: "all", jobType: "all" });
+    onChange({ search: "", jobType: "all" });
   }
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-xs p-4 space-y-4">
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        <Input
-          type="search"
-          placeholder="Search job title or company..."
-          value={filters.search}
-          onChange={(e) => update({ search: e.target.value })}
-          className="pl-9 pr-4 bg-secondary/50 border-border focus:bg-card"
-        />
-        {filters.search && (
-          <button
-            type="button"
-            onClick={() => update({ search: "" })}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Clear search"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        )}
-      </div>
-
-      {/* Dropdowns row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* State */}
-        <Select value={filters.state} onValueChange={handleStateChange}>
-          <SelectTrigger className="bg-secondary/50 border-border">
-            <SelectValue placeholder="All States" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All States</SelectItem>
-            {STATES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {/* District */}
-        <Select
-          value={filters.district}
-          onValueChange={(v) => update({ district: v })}
-          disabled={filters.state === "all"}
-        >
-          <SelectTrigger className="bg-secondary/50 border-border disabled:opacity-50">
-            <SelectValue placeholder="All Districts" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Districts</SelectItem>
-            {districts.map((d) => (
-              <SelectItem key={d} value={d}>
-                {d}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex flex-col sm:flex-row gap-3">
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            type="search"
+            placeholder="Search job title or company..."
+            value={filters.search}
+            onChange={(e) => update({ search: e.target.value })}
+            className="pl-9 pr-4 bg-secondary/50 border-border focus:bg-card"
+          />
+          {filters.search && (
+            <button
+              type="button"
+              onClick={() => update({ search: "" })}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Clear search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
 
         {/* Job Type */}
         <Select
           value={filters.jobType}
           onValueChange={(v) => update({ jobType: v })}
         >
-          <SelectTrigger className="bg-secondary/50 border-border">
+          <SelectTrigger className="bg-secondary/50 border-border sm:w-44">
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
@@ -139,7 +90,7 @@ export function FilterBar({
       </div>
 
       {/* Results count + clear */}
-      <div className="flex items-center justify-between pt-1">
+      <div className="flex items-center justify-between pt-0.5">
         <p className="text-sm text-muted-foreground">
           Showing{" "}
           <span className="font-semibold text-foreground">{filteredCount}</span>{" "}

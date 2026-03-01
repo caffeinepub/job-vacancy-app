@@ -8,10 +8,11 @@ import { cn } from "@/lib/utils";
 import {
   Archive,
   Briefcase,
-  Edit,
   FileText,
+  Gift,
   IdCard,
   LogIn,
+  LogOut,
   MapPin,
   Palette,
   PlusCircle,
@@ -25,7 +26,7 @@ export type PanelId =
   | "new-vacancy"
   | "old-vacancy"
   | "draft-vacancy"
-  | "add-post"
+  | "refer-earn"
   | null;
 
 interface MenuItem {
@@ -37,12 +38,6 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   {
-    id: "auth",
-    label: "Sign Up / Login",
-    icon: LogIn,
-    description: "Create account or sign in",
-  },
-  {
     id: "themes",
     label: "Themes",
     icon: Palette,
@@ -53,12 +48,6 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Locations",
     icon: MapPin,
     description: "Browse by Indian state",
-  },
-  {
-    id: "your-id",
-    label: "Your ID",
-    icon: IdCard,
-    description: "Profile and stats",
   },
   {
     id: "new-vacancy",
@@ -79,10 +68,10 @@ const MENU_ITEMS: MenuItem[] = [
     description: "Unpublished drafts",
   },
   {
-    id: "add-post",
-    label: "Add Post",
-    icon: Edit,
-    description: "Share news & tips",
+    id: "refer-earn",
+    label: "Refer & Earn",
+    icon: Gift,
+    description: "Invite friends, earn ₹100 each",
   },
 ];
 
@@ -103,19 +92,19 @@ export function SideMenu({
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="left"
-        className="w-[300px] sm:w-[320px] p-0 flex flex-col bg-card border-r border-border"
+        className="w-[300px] sm:w-[320px] p-0 flex flex-col overflow-hidden bg-card border-r border-border"
       >
-        {/* Header */}
-        <SheetHeader className="px-5 pt-5 pb-4 border-b border-border bg-primary/5">
+        {/* Header / Logo */}
+        <SheetHeader className="flex-none px-5 pt-4 pb-3 border-b border-border bg-primary/5">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
               <Briefcase
-                className="w-4.5 h-4.5 text-primary-foreground"
-                style={{ width: "1.1rem", height: "1.1rem" }}
+                className="text-primary-foreground"
+                style={{ width: "1rem", height: "1rem" }}
               />
             </div>
             <div className="leading-none">
-              <SheetTitle className="font-display font-bold text-lg text-foreground tracking-tight">
+              <SheetTitle className="font-display font-bold text-base text-foreground tracking-tight">
                 JobFinder
               </SheetTitle>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -125,12 +114,58 @@ export function SideMenu({
           </div>
         </SheetHeader>
 
-        {/* Menu Items */}
+        {/* Main nav — vertical stack, no scrolling */}
         <nav
-          className="flex-1 overflow-y-auto py-3 px-3"
+          className="flex-none px-3 pt-2 pb-1 overflow-hidden"
           aria-label="Side navigation"
         >
-          <ul className="space-y-0.5">
+          {/* Your ID — at the very top */}
+          <button
+            type="button"
+            onClick={() => onSelectPanel("your-id")}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all duration-150 group",
+              activePanel === "your-id"
+                ? "bg-primary/10 text-primary"
+                : "text-foreground hover:bg-secondary/70 hover:text-foreground",
+            )}
+            aria-current={activePanel === "your-id" ? "page" : undefined}
+          >
+            <div
+              className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors",
+                activePanel === "your-id"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary",
+              )}
+            >
+              <IdCard className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div
+                className={cn(
+                  "text-sm font-semibold leading-tight",
+                  activePanel === "your-id"
+                    ? "text-primary"
+                    : "text-foreground",
+                )}
+              >
+                Your ID
+              </div>
+              <div className="text-xs text-muted-foreground truncate">
+                Profile and stats
+              </div>
+            </div>
+            {activePanel === "your-id" && (
+              <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+            )}
+          </button>
+
+          {/* Divider */}
+          <div className="mx-1 my-1 border-t border-border/60" />
+
+          {/* Remaining menu items */}
+          <ul className="space-y-0">
             {MENU_ITEMS.map(({ id, label, icon: Icon, description }) => {
               const isActive = activePanel === id;
               return (
@@ -139,7 +174,7 @@ export function SideMenu({
                     type="button"
                     onClick={() => onSelectPanel(id)}
                     className={cn(
-                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 group",
+                      "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all duration-150 group",
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "text-foreground hover:bg-secondary/70 hover:text-foreground",
@@ -148,7 +183,7 @@ export function SideMenu({
                   >
                     <div
                       className={cn(
-                        "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors",
+                        "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors",
                         isActive
                           ? "bg-primary text-primary-foreground"
                           : "bg-secondary text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary",
@@ -165,7 +200,7 @@ export function SideMenu({
                       >
                         {label}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                      <div className="text-xs text-muted-foreground truncate">
                         {description}
                       </div>
                     </div>
@@ -179,13 +214,70 @@ export function SideMenu({
           </ul>
         </nav>
 
-        {/* Footer */}
-        <div className="px-5 py-4 border-t border-border bg-secondary/30">
-          <p className="text-xs text-muted-foreground text-center leading-relaxed">
-            From Jammu &amp; Kashmir to Kanyakumari
-            <br />
+        {/* Spacer to push auth section to bottom */}
+        <div className="flex-1" />
+
+        {/* Bottom Auth Section */}
+        <div className="flex-none px-3 py-2 border-t border-border space-y-0">
+          {/* Sign in / Login */}
+          <button
+            type="button"
+            onClick={() => onSelectPanel("auth")}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all duration-150 group",
+              activePanel === "auth"
+                ? "bg-primary/10 text-primary"
+                : "text-foreground hover:bg-secondary/70 hover:text-foreground",
+            )}
+          >
+            <div
+              className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors",
+                activePanel === "auth"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary",
+              )}
+            >
+              <LogIn className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold leading-tight">
+                Sign in / Login
+              </div>
+              <div className="text-xs text-muted-foreground truncate">
+                Create account or sign in
+              </div>
+            </div>
+          </button>
+
+          {/* Log out */}
+          <button
+            type="button"
+            onClick={() => {
+              /* log out handler */
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all duration-150 group hover:bg-red-500/10"
+          >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-500/10 text-red-500 group-hover:bg-red-500/20 transition-colors">
+              <LogOut className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold leading-tight text-red-500">
+                Log out
+              </div>
+              <div className="text-xs text-red-400/70 truncate">
+                Sign out of your account
+              </div>
+            </div>
+          </button>
+        </div>
+
+        {/* Footer tagline */}
+        <div className="flex-none px-5 py-2 border-t border-border bg-secondary/30">
+          <p className="text-xs text-muted-foreground text-center leading-snug">
+            From J&amp;K to Kanyakumari —{" "}
             <span className="font-medium text-foreground/60">
-              Your job is searching for you
+              your job is searching for you
             </span>
           </p>
         </div>

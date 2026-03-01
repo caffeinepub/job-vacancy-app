@@ -8,6 +8,11 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const VacancyStatus = IDL.Variant({
+  'new' : IDL.Null,
+  'old' : IDL.Null,
+  'draft' : IDL.Null,
+});
 export const JobType = IDL.Variant({
   'remote' : IDL.Null,
   'contract' : IDL.Null,
@@ -16,9 +21,12 @@ export const JobType = IDL.Variant({
 });
 export const Time = IDL.Int;
 export const JobListing = IDL.Record({
+  'status' : VacancyStatus,
   'title' : IDL.Text,
+  'country' : IDL.Text,
   'salaryCurrency' : IDL.Text,
   'jobType' : JobType,
+  'city' : IDL.Text,
   'jobId' : IDL.Text,
   'description' : IDL.Text,
   'district' : IDL.Text,
@@ -43,13 +51,50 @@ export const ApplicationResult = IDL.Variant({
 });
 
 export const idlService = IDL.Service({
+  'countJobTypes' : IDL.Func(
+      [],
+      [
+        IDL.Record({
+          'remote' : IDL.Nat,
+          'contract' : IDL.Nat,
+          'partTime' : IDL.Nat,
+          'fullTime' : IDL.Nat,
+        }),
+      ],
+      ['query'],
+    ),
   'getAllJobs' : IDL.Func([], [IDL.Vec(JobListing)], ['query']),
+  'getApplicationCount' : IDL.Func([], [IDL.Nat], ['query']),
   'getApplicationsForJob' : IDL.Func(
       [IDL.Text],
       [IDL.Vec(JobApplication)],
       ['query'],
     ),
-  'getJobById' : IDL.Func([IDL.Text], [JobListing], ['query']),
+  'getJobById' : IDL.Func([IDL.Text], [IDL.Opt(JobListing)], ['query']),
+  'getJobCount' : IDL.Func([], [IDL.Nat], ['query']),
+  'getVacanciesByStatus' : IDL.Func(
+      [VacancyStatus],
+      [IDL.Vec(JobListing)],
+      ['query'],
+    ),
+  'postVacancy' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        JobType,
+        IDL.Nat,
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        VacancyStatus,
+      ],
+      [IDL.Text],
+      [],
+    ),
   'submitApplication' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
       [ApplicationResult],
@@ -60,6 +105,11 @@ export const idlService = IDL.Service({
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const VacancyStatus = IDL.Variant({
+    'new' : IDL.Null,
+    'old' : IDL.Null,
+    'draft' : IDL.Null,
+  });
   const JobType = IDL.Variant({
     'remote' : IDL.Null,
     'contract' : IDL.Null,
@@ -68,9 +118,12 @@ export const idlFactory = ({ IDL }) => {
   });
   const Time = IDL.Int;
   const JobListing = IDL.Record({
+    'status' : VacancyStatus,
     'title' : IDL.Text,
+    'country' : IDL.Text,
     'salaryCurrency' : IDL.Text,
     'jobType' : JobType,
+    'city' : IDL.Text,
     'jobId' : IDL.Text,
     'description' : IDL.Text,
     'district' : IDL.Text,
@@ -95,13 +148,50 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
+    'countJobTypes' : IDL.Func(
+        [],
+        [
+          IDL.Record({
+            'remote' : IDL.Nat,
+            'contract' : IDL.Nat,
+            'partTime' : IDL.Nat,
+            'fullTime' : IDL.Nat,
+          }),
+        ],
+        ['query'],
+      ),
     'getAllJobs' : IDL.Func([], [IDL.Vec(JobListing)], ['query']),
+    'getApplicationCount' : IDL.Func([], [IDL.Nat], ['query']),
     'getApplicationsForJob' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(JobApplication)],
         ['query'],
       ),
-    'getJobById' : IDL.Func([IDL.Text], [JobListing], ['query']),
+    'getJobById' : IDL.Func([IDL.Text], [IDL.Opt(JobListing)], ['query']),
+    'getJobCount' : IDL.Func([], [IDL.Nat], ['query']),
+    'getVacanciesByStatus' : IDL.Func(
+        [VacancyStatus],
+        [IDL.Vec(JobListing)],
+        ['query'],
+      ),
+    'postVacancy' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          JobType,
+          IDL.Nat,
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          VacancyStatus,
+        ],
+        [IDL.Text],
+        [],
+      ),
     'submitApplication' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
         [ApplicationResult],

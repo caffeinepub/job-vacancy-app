@@ -22,9 +22,12 @@ export interface JobApplication {
   'phone' : string,
 }
 export interface JobListing {
+  'status' : VacancyStatus,
   'title' : string,
+  'country' : string,
   'salaryCurrency' : string,
   'jobType' : JobType,
+  'city' : string,
   'jobId' : string,
   'description' : string,
   'district' : string,
@@ -39,10 +42,42 @@ export type JobType = { 'remote' : null } |
   { 'partTime' : null } |
   { 'fullTime' : null };
 export type Time = bigint;
+export type VacancyStatus = { 'new' : null } |
+  { 'old' : null } |
+  { 'draft' : null };
 export interface _SERVICE {
+  'countJobTypes' : ActorMethod<
+    [],
+    {
+      'remote' : bigint,
+      'contract' : bigint,
+      'partTime' : bigint,
+      'fullTime' : bigint,
+    }
+  >,
   'getAllJobs' : ActorMethod<[], Array<JobListing>>,
+  'getApplicationCount' : ActorMethod<[], bigint>,
   'getApplicationsForJob' : ActorMethod<[string], Array<JobApplication>>,
-  'getJobById' : ActorMethod<[string], JobListing>,
+  'getJobById' : ActorMethod<[string], [] | [JobListing]>,
+  'getJobCount' : ActorMethod<[], bigint>,
+  'getVacanciesByStatus' : ActorMethod<[VacancyStatus], Array<JobListing>>,
+  'postVacancy' : ActorMethod<
+    [
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      JobType,
+      bigint,
+      bigint,
+      string,
+      string,
+      VacancyStatus,
+    ],
+    string
+  >,
   'submitApplication' : ActorMethod<
     [string, string, string, string, string],
     ApplicationResult

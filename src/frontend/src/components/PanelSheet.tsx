@@ -6,13 +6,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import type { JobListing } from "../data/jobs";
 import type { PanelId } from "./SideMenu";
-import { AddPostPanel } from "./panels/AddPostPanel";
 import { AuthPanel } from "./panels/AuthPanel";
 import { DraftVacancyPanel } from "./panels/DraftVacancyPanel";
 import { LocationsPanel } from "./panels/LocationsPanel";
 import { NewVacancyPanel } from "./panels/NewVacancyPanel";
 import { OldVacancyPanel } from "./panels/OldVacancyPanel";
+import { ReferEarnPanel } from "./panels/ReferEarnPanel";
 import { ThemesPanel } from "./panels/ThemesPanel";
 import { YourIdPanel } from "./panels/YourIdPanel";
 
@@ -48,9 +49,9 @@ const PANEL_META: Record<
     title: "Draft Vacancy",
     description: "Unpublished job drafts",
   },
-  "add-post": {
-    title: "Add Post",
-    description: "Share with the community",
+  "refer-earn": {
+    title: "Refer & Earn",
+    description: "Invite friends and earn rewards",
   },
 };
 
@@ -59,6 +60,8 @@ interface PanelSheetProps {
   onClose: () => void;
   onStateFilter: (state: string) => void;
   activeState: string;
+  onNewJob?: (job: JobListing) => void;
+  allVacancies?: JobListing[];
 }
 
 export function PanelSheet({
@@ -66,6 +69,8 @@ export function PanelSheet({
   onClose,
   onStateFilter,
   activeState,
+  onNewJob,
+  allVacancies = [],
 }: PanelSheetProps) {
   const isOpen = activePanel !== null;
   const meta = activePanel ? PANEL_META[activePanel] : null;
@@ -95,10 +100,20 @@ export function PanelSheet({
             />
           )}
           {activePanel === "your-id" && <YourIdPanel />}
-          {activePanel === "new-vacancy" && <NewVacancyPanel />}
-          {activePanel === "old-vacancy" && <OldVacancyPanel />}
+          {activePanel === "new-vacancy" && (
+            <NewVacancyPanel
+              onPost={(job) => {
+                if (onNewJob) onNewJob(job);
+                setTimeout(onClose, 2200);
+              }}
+              allVacancies={allVacancies}
+            />
+          )}
+          {activePanel === "old-vacancy" && (
+            <OldVacancyPanel allVacancies={allVacancies} />
+          )}
           {activePanel === "draft-vacancy" && <DraftVacancyPanel />}
-          {activePanel === "add-post" && <AddPostPanel />}
+          {activePanel === "refer-earn" && <ReferEarnPanel />}
         </ScrollArea>
       </SheetContent>
     </Sheet>

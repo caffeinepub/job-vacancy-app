@@ -1,11 +1,12 @@
 import { Toaster } from "@/components/ui/sonner";
 import { Briefcase, MapPin, Menu, TrendingUp, Users } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import type { JobType } from "./backend.d";
+import { VacancyStatus } from "./backend.d";
 import { ApplyModal } from "./components/ApplyModal";
 import { FilterBar, type Filters } from "./components/FilterBar";
-import { JobCard } from "./components/JobCard";
+import { HomeGrid } from "./components/HomeGrid";
 import { PanelSheet } from "./components/PanelSheet";
 import { type PanelId, SideMenu } from "./components/SideMenu";
 import { applyStoredTheme } from "./components/panels/ThemesPanel";
@@ -16,8 +17,6 @@ applyStoredTheme();
 
 const INITIAL_FILTERS: Filters = {
   search: "",
-  state: "all",
-  district: "all",
   jobType: "all",
 };
 
@@ -31,6 +30,7 @@ const STATS = [
 export default function App() {
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
+  const [postedJobs, setPostedJobs] = useState<JobListing[]>([]);
 
   // Side menu state
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -53,16 +53,14 @@ export default function App() {
 
   function handleMenuItemSelect(panel: PanelId) {
     setActivePanel(panel);
-    // keep drawer open so user can switch panels
   }
 
-  function handleStateFilter(state: string) {
-    setFilters((prev) => ({ ...prev, state, district: "all" }));
-  }
+  const allJobs = useMemo(() => [...postedJobs, ...SAMPLE_JOBS], [postedJobs]);
 
-  const filteredJobs = useMemo(() => {
+  // Base filtered jobs applying global search + jobType filter
+  const baseFilteredJobs = useMemo(() => {
     const query = filters.search.toLowerCase().trim();
-    return SAMPLE_JOBS.filter((job) => {
+    return allJobs.filter((job) => {
       if (
         query &&
         !job.title.toLowerCase().includes(query) &&
@@ -70,9 +68,6 @@ export default function App() {
       ) {
         return false;
       }
-      if (filters.state !== "all" && job.state !== filters.state) return false;
-      if (filters.district !== "all" && job.district !== filters.district)
-        return false;
       if (
         filters.jobType !== "all" &&
         job.jobType !== (filters.jobType as JobType)
@@ -80,7 +75,25 @@ export default function App() {
         return false;
       return true;
     });
-  }, [filters]);
+  }, [filters, allJobs]);
+
+  // Panel 1: Indian New Vacancies — all new, sorted by datePosted desc
+  const newIndiaJobs = useMemo(
+    () =>
+      baseFilteredJobs
+        .filter((j) => j.status === VacancyStatus.new_)
+        .sort((a, b) => (a.datePosted > b.datePosted ? -1 : 1)),
+    [baseFilteredJobs],
+  );
+
+  // Panel 3: Indian Old Vacancies — all old, sorted by datePosted desc
+  const oldIndiaJobs = useMemo(
+    () =>
+      baseFilteredJobs
+        .filter((j) => j.status === VacancyStatus.old)
+        .sort((a, b) => (a.datePosted > b.datePosted ? -1 : 1)),
+    [baseFilteredJobs],
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -96,8 +109,10 @@ export default function App() {
       <PanelSheet
         activePanel={activePanel}
         onClose={() => setActivePanel(null)}
-        onStateFilter={handleStateFilter}
-        activeState={filters.state}
+        onStateFilter={() => {}}
+        activeState="all"
+        onNewJob={(job) => setPostedJobs((prev) => [job, ...prev])}
+        allVacancies={allJobs}
       />
 
       {/* ──────────────── Header / Nav ──────────────── */}
@@ -152,7 +167,7 @@ export default function App() {
 
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground hidden sm:block">
-              {SAMPLE_JOBS.length} open positions
+              {allJobs.length} open positions
             </span>
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
@@ -189,7 +204,7 @@ export default function App() {
           >
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/80 text-xs font-medium backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              {SAMPLE_JOBS.length} opportunities available now
+              {allJobs.length} opportunities available now
             </div>
 
             <h1 className="font-display font-bold text-4xl sm:text-5xl md:text-6xl text-white leading-[1.1] tracking-tight">
@@ -258,51 +273,19 @@ export default function App() {
         >
           <FilterBar
             filters={filters}
-            totalCount={SAMPLE_JOBS.length}
-            filteredCount={filteredJobs.length}
+            totalCount={allJobs.length}
+            filteredCount={newIndiaJobs.length + oldIndiaJobs.length}
             onChange={setFilters}
           />
         </motion.div>
 
-        {/* Job Grid */}
-        <div className="mt-8">
-          <AnimatePresence mode="popLayout">
-            {filteredJobs.length === 0 ? (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center py-20 text-center"
-              >
-                <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-4">
-                  <Briefcase className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <h3 className="font-display font-semibold text-lg text-foreground mb-2">
-                  No jobs found
-                </h3>
-                <p className="text-muted-foreground text-sm max-w-sm">
-                  Try adjusting your filters or search terms to discover more
-                  opportunities.
-                </p>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="grid"
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-              >
-                {filteredJobs.map((job, i) => (
-                  <JobCard
-                    key={job.jobId}
-                    job={job}
-                    onApply={setSelectedJob}
-                    index={i}
-                  />
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+        {/* 2x2 Home Grid — Quick Vacancy Overview */}
+        <HomeGrid
+          newIndiaJobs={newIndiaJobs}
+          oldIndiaJobs={oldIndiaJobs}
+          newStateJobs={newIndiaJobs}
+          oldStateJobs={oldIndiaJobs}
+        />
       </main>
 
       {/* ──────────────── Footer ──────────────── */}

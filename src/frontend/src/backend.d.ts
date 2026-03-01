@@ -17,9 +17,12 @@ export interface JobApplication {
     phone: string;
 }
 export interface JobListing {
+    status: VacancyStatus;
     title: string;
+    country: string;
     salaryCurrency: string;
     jobType: JobType;
+    city: string;
     jobId: string;
     description: string;
     district: string;
@@ -43,9 +46,24 @@ export enum JobType {
     partTime = "partTime",
     fullTime = "fullTime"
 }
+export enum VacancyStatus {
+    new_ = "new",
+    old = "old",
+    draft = "draft"
+}
 export interface backendInterface {
+    countJobTypes(): Promise<{
+        remote: bigint;
+        contract: bigint;
+        partTime: bigint;
+        fullTime: bigint;
+    }>;
     getAllJobs(): Promise<Array<JobListing>>;
+    getApplicationCount(): Promise<bigint>;
     getApplicationsForJob(jobId: string): Promise<Array<JobApplication>>;
-    getJobById(jobId: string): Promise<JobListing>;
+    getJobById(jobId: string): Promise<JobListing | null>;
+    getJobCount(): Promise<bigint>;
+    getVacanciesByStatus(status: VacancyStatus): Promise<Array<JobListing>>;
+    postVacancy(title: string, company: string, country: string, state: string, city: string, district: string, jobType: JobType, salaryMin: bigint, salaryMax: bigint, salaryCurrency: string, description: string, status: VacancyStatus): Promise<string>;
     submitApplication(jobId: string, applicantName: string, email: string, phone: string, coverLetter: string): Promise<ApplicationResult>;
 }
