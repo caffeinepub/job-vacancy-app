@@ -1,5 +1,16 @@
 import { Toaster } from "@/components/ui/sonner";
-import { Briefcase, MapPin, Menu, TrendingUp, Users } from "lucide-react";
+import {
+  Briefcase,
+  Facebook,
+  Instagram,
+  Linkedin,
+  MapPin,
+  Menu,
+  Send,
+  TrendingUp,
+  Twitter,
+  Users,
+} from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import type { JobType } from "./backend.d";
@@ -331,10 +342,76 @@ export default function App() {
               </ul>
             </div>
           </div>
-          <div className="border-t border-border mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-            <p>
-              © {new Date().getFullYear()} JobFinder India. All rights reserved.
+          {/* Follow Us Section */}
+          <div className="border-t border-border mt-8 pt-6">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center mb-4">
+              Follow Us
             </p>
+            <div className="flex items-center justify-center gap-4">
+              {/* Instagram */}
+              <a
+                href="https://www.instagram.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                style={{
+                  background:
+                    "linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)",
+                }}
+                aria-label="Follow us on Instagram"
+              >
+                <Instagram className="w-5 h-5 text-white" />
+              </a>
+              {/* Facebook */}
+              <a
+                href="https://www.facebook.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                style={{ backgroundColor: "#1877F2" }}
+                aria-label="Follow us on Facebook"
+              >
+                <Facebook className="w-5 h-5 text-white" />
+              </a>
+              {/* Twitter / X */}
+              <a
+                href="https://twitter.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                style={{ backgroundColor: "#000000" }}
+                aria-label="Follow us on Twitter / X"
+              >
+                <Twitter className="w-5 h-5 text-white" />
+              </a>
+              {/* Telegram */}
+              <a
+                href="https://telegram.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                style={{ backgroundColor: "#2AABEE" }}
+                aria-label="Follow us on Telegram"
+              >
+                <Send className="w-5 h-5 text-white" />
+              </a>
+              {/* LinkedIn */}
+              <a
+                href="https://www.linkedin.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                style={{ backgroundColor: "#0A66C2" }}
+                aria-label="Follow us on LinkedIn"
+              >
+                <Linkedin className="w-5 h-5 text-white" />
+              </a>
+            </div>
+          </div>
+
+          {/* Copyright Row */}
+          <div className="border-t border-border mt-6 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+            <p>© 2026 JobFinder India. All rights reserved.</p>
             <p>
               Built with ❤️ using{" "}
               <a
