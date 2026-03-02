@@ -16,6 +16,7 @@ import { NewVacancyPanel } from "./panels/NewVacancyPanel";
 import { OldVacancyPanel } from "./panels/OldVacancyPanel";
 import { ReferEarnPanel } from "./panels/ReferEarnPanel";
 import { ThemesPanel } from "./panels/ThemesPanel";
+import { WithdrawalPanel } from "./panels/WithdrawalPanel";
 import { YourIdPanel } from "./panels/YourIdPanel";
 
 const PANEL_META: Record<
@@ -54,6 +55,10 @@ const PANEL_META: Record<
     title: "Refer & Earn",
     description: "Invite friends and earn rewards",
   },
+  withdrawal: {
+    title: "Withdrawal",
+    description: "Withdraw your referral earnings",
+  },
 };
 
 interface PanelSheetProps {
@@ -66,6 +71,8 @@ interface PanelSheetProps {
   user: AuthUser | null;
   onLogin?: (user: AuthUser) => void;
   onOpenAuth?: () => void;
+  onLogout?: () => void;
+  onNavigate?: (panel: PanelId) => void;
 }
 
 export function PanelSheet({
@@ -78,6 +85,8 @@ export function PanelSheet({
   user,
   onLogin,
   onOpenAuth,
+  onLogout,
+  onNavigate,
 }: PanelSheetProps) {
   const isOpen = activePanel !== null;
   const meta = activePanel ? PANEL_META[activePanel] : null;
@@ -94,48 +103,77 @@ export function PanelSheet({
             <SheetDescription>{meta.description}</SheetDescription>
           </SheetHeader>
         )}
-        <ScrollArea className="flex-1">
-          {activePanel === "auth" && (
-            <AuthPanel
-              onLogin={(u) => {
-                onLogin?.(u);
-                onClose();
-              }}
-            />
-          )}
-          {activePanel === "themes" && <ThemesPanel />}
-          {activePanel === "locations" && (
-            <LocationsPanel
-              onStateFilter={(state) => {
-                onStateFilter(state);
-                onClose();
-              }}
-              activeState={activeState}
-            />
-          )}
-          {activePanel === "your-id" && (
-            <YourIdPanel
-              user={user}
-              onOpenAuth={() => {
-                onOpenAuth?.();
-              }}
-            />
-          )}
-          {activePanel === "new-vacancy" && (
-            <NewVacancyPanel
-              onPost={(job) => {
-                if (onNewJob) onNewJob(job);
-                setTimeout(onClose, 2200);
-              }}
-              allVacancies={allVacancies}
-            />
-          )}
-          {activePanel === "old-vacancy" && (
-            <OldVacancyPanel allVacancies={allVacancies} />
-          )}
-          {activePanel === "draft-vacancy" && <DraftVacancyPanel />}
-          {activePanel === "refer-earn" && <ReferEarnPanel />}
-        </ScrollArea>
+        {/* Panels that manage their own native scroll (no ScrollArea) */}
+        {activePanel === "new-vacancy" ||
+        activePanel === "old-vacancy" ||
+        activePanel === "draft-vacancy" ||
+        activePanel === "refer-earn" ||
+        activePanel === "withdrawal" ||
+        activePanel === "themes" ? (
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+            {activePanel === "new-vacancy" && (
+              <NewVacancyPanel
+                onPost={(job) => {
+                  if (onNewJob) onNewJob(job);
+                  setTimeout(onClose, 2200);
+                }}
+                allVacancies={allVacancies}
+              />
+            )}
+            {activePanel === "old-vacancy" && (
+              <OldVacancyPanel allVacancies={allVacancies} />
+            )}
+            {activePanel === "draft-vacancy" && <DraftVacancyPanel />}
+            {activePanel === "refer-earn" && (
+              <div
+                className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                <ReferEarnPanel onWithdraw={() => onNavigate?.("withdrawal")} />
+              </div>
+            )}
+            {activePanel === "withdrawal" && (
+              <WithdrawalPanel onBack={() => onNavigate?.("refer-earn")} />
+            )}
+            {activePanel === "themes" && (
+              <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+                <ThemesPanel />
+              </div>
+            )}
+          </div>
+        ) : (
+          <ScrollArea className="flex-1">
+            {activePanel === "auth" && (
+              <AuthPanel
+                onLogin={(u) => {
+                  onLogin?.(u);
+                  onClose();
+                }}
+              />
+            )}
+            {activePanel === "locations" && (
+              <LocationsPanel
+                onStateFilter={(state) => {
+                  onStateFilter(state);
+                  onClose();
+                }}
+                activeState={activeState}
+              />
+            )}
+            {activePanel === "your-id" && (
+              <YourIdPanel
+                user={user}
+                onOpenAuth={() => {
+                  onOpenAuth?.();
+                }}
+                onLogin={(u) => {
+                  onLogin?.(u);
+                }}
+                onLogout={onLogout}
+              />
+            )}
+          </ScrollArea>
+        )}
       </SheetContent>
     </Sheet>
   );

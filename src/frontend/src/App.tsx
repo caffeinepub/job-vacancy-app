@@ -22,11 +22,15 @@ import { OnboardingFlow } from "./components/OnboardingFlow";
 import { PanelSheet } from "./components/PanelSheet";
 import { type PanelId, SideMenu } from "./components/SideMenu";
 import type { AuthUser } from "./components/panels/AuthPanel";
-import { applyStoredTheme } from "./components/panels/ThemesPanel";
+import {
+  applyStoredFont,
+  applyStoredTheme,
+} from "./components/panels/ThemesPanel";
 import { type JobListing, SAMPLE_JOBS } from "./data/jobs";
 
-// Apply stored theme on first render
+// Apply stored theme and font on first render
 applyStoredTheme();
+applyStoredFont();
 
 const INITIAL_FILTERS: Filters = {
   search: "",
@@ -49,8 +53,18 @@ export default function App() {
   // ── Auth state ──
   const [user, setUser] = useState<AuthUser | null>(() => {
     const name = localStorage.getItem("jf_user_name");
-    const email = localStorage.getItem("jf_user_email");
-    return name && email ? { name, email } : null;
+    const email = localStorage.getItem("jf_user_email") || "";
+    const phone = localStorage.getItem("jf_user_phone") || "";
+    const userId = localStorage.getItem("jf_user_id") || `jf-${Date.now()}`;
+    const authMethod =
+      (localStorage.getItem("jf_user_auth_method") as "email" | "phone") ||
+      "email";
+    const createdAt =
+      Number(localStorage.getItem("jf_user_created_at")) || Date.now();
+    if (!name) return null;
+    // Require at least one contact method
+    if (!email && !phone) return null;
+    return { name, email, phone, userId, authMethod, createdAt };
   });
 
   function handleLogin(u: AuthUser) {
@@ -61,9 +75,14 @@ export default function App() {
     localStorage.removeItem("jf_user_name");
     localStorage.removeItem("jf_user_email");
     localStorage.removeItem("jf_user_phone");
+    localStorage.removeItem("jf_user_id");
+    localStorage.removeItem("jf_user_auth_method");
+    localStorage.removeItem("jf_user_created_at");
     localStorage.removeItem("jf_user_location");
     localStorage.removeItem("jf_user_job_title");
     setUser(null);
+    setIsDrawerOpen(false);
+    setActivePanel(null);
   }
 
   // ── App state ──
@@ -154,6 +173,7 @@ export default function App() {
         onClose={() => setIsDrawerOpen(false)}
         onSelectPanel={handleMenuItemSelect}
         onLogout={handleLogout}
+        user={user}
       />
 
       {/* Panel Sheet (right side) */}
@@ -167,6 +187,8 @@ export default function App() {
         user={user}
         onLogin={handleLogin}
         onOpenAuth={() => setActivePanel("auth")}
+        onLogout={handleLogout}
+        onNavigate={(panel) => setActivePanel(panel)}
       />
 
       {/* ──────────────── Header / Nav ──────────────── */}

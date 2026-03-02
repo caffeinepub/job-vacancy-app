@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -230,7 +229,7 @@ export function NewVacancyPanel({
     : [];
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Panel Header */}
       <div className="px-6 pt-6 pb-4 border-b border-border">
         <h2 className="text-xl font-display font-bold text-foreground">
@@ -260,279 +259,284 @@ export function NewVacancyPanel({
         </TabsList>
 
         {/* ── Tab: Post New ── */}
-        <TabsContent value="post" className="flex-1 mt-0 overflow-auto">
-          <ScrollArea className="h-full">
-            <div className="p-6 space-y-4">
-              {posted ? (
-                <div className="flex flex-col items-center justify-center min-h-[260px] space-y-4 text-center">
-                  <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                    <CheckCircle2 className="w-7 h-7 text-emerald-500" />
+        <TabsContent
+          value="post"
+          className="flex-1 min-h-0 mt-0 overflow-y-auto overscroll-contain"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <div className="p-6 space-y-4">
+            {posted ? (
+              <div className="flex flex-col items-center justify-center min-h-[260px] space-y-4 text-center">
+                <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                  <CheckCircle2 className="w-7 h-7 text-emerald-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-display font-bold text-foreground">
+                    Vacancy Posted!
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Your listing is now live on the job board.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handlePost} className="space-y-4">
+                {/* Job Title */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="vac-title">
+                    Job Title <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="vac-title"
+                    placeholder="e.g. Senior Software Engineer"
+                    value={form.jobTitle}
+                    onChange={(e) => update("jobTitle", e.target.value)}
+                    required
+                  />
+                </div>
+
+                {/* Company */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="vac-company">
+                    Company <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="vac-company"
+                    placeholder="e.g. Tata Consultancy Services"
+                    value={form.company}
+                    onChange={(e) => update("company", e.target.value)}
+                    required
+                  />
+                </div>
+
+                {/* Country */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="vac-country">
+                    <Globe className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                    Country
+                  </Label>
+                  <Input
+                    id="vac-country"
+                    placeholder="India"
+                    value={form.country}
+                    onChange={(e) => update("country", e.target.value)}
+                  />
+                </div>
+
+                {/* State + City */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>State</Label>
+                    <Select
+                      value={form.state}
+                      onValueChange={(v) => update("state", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INDIAN_STATES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-display font-bold text-foreground">
-                      Vacancy Posted!
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Your listing is now live on the job board.
-                    </p>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="vac-city">City</Label>
+                    <Input
+                      id="vac-city"
+                      placeholder="e.g. Bengaluru"
+                      value={form.city}
+                      onChange={(e) => update("city", e.target.value)}
+                    />
                   </div>
                 </div>
-              ) : (
-                <form onSubmit={handlePost} className="space-y-4">
-                  {/* Job Title */}
-                  <div className="space-y-1.5">
-                    <Label htmlFor="vac-title">
-                      Job Title <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="vac-title"
-                      placeholder="e.g. Senior Software Engineer"
-                      value={form.jobTitle}
-                      onChange={(e) => update("jobTitle", e.target.value)}
-                      required
-                    />
-                  </div>
 
-                  {/* Company */}
-                  <div className="space-y-1.5">
-                    <Label htmlFor="vac-company">
-                      Company <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="vac-company"
-                      placeholder="e.g. Tata Consultancy Services"
-                      value={form.company}
-                      onChange={(e) => update("company", e.target.value)}
-                      required
-                    />
-                  </div>
+                {/* District */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="vac-district">District (optional)</Label>
+                  <Input
+                    id="vac-district"
+                    placeholder="e.g. South Bengaluru"
+                    value={form.district}
+                    onChange={(e) => update("district", e.target.value)}
+                  />
+                </div>
 
-                  {/* Country */}
-                  <div className="space-y-1.5">
-                    <Label htmlFor="vac-country">
-                      <Globe className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
-                      Country
-                    </Label>
-                    <Input
-                      id="vac-country"
-                      placeholder="India"
-                      value={form.country}
-                      onChange={(e) => update("country", e.target.value)}
-                    />
-                  </div>
+                {/* Job Type */}
+                <div className="space-y-1.5">
+                  <Label>Job Type</Label>
+                  <Select
+                    value={form.jobType}
+                    onValueChange={(v) => update("jobType", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select job type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {JOB_TYPES.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>
+                          {t.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  {/* State + City */}
+                {/* Status */}
+                <div className="space-y-1.5">
+                  <Label>Status</Label>
+                  <Select
+                    value={form.status}
+                    onValueChange={(v) => update("status", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_OPTIONS.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Salary Range */}
+                <div className="space-y-1.5">
+                  <Label>Salary Range (INR / month)</Label>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label>State</Label>
-                      <Select
-                        value={form.state}
-                        onValueChange={(v) => update("state", v)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select state" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {INDIAN_STATES.map((s) => (
-                            <SelectItem key={s} value={s}>
-                              {s}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="vac-city">City</Label>
-                      <Input
-                        id="vac-city"
-                        placeholder="e.g. Bengaluru"
-                        value={form.city}
-                        onChange={(e) => update("city", e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  {/* District */}
-                  <div className="space-y-1.5">
-                    <Label htmlFor="vac-district">District (optional)</Label>
                     <Input
-                      id="vac-district"
-                      placeholder="e.g. South Bengaluru"
-                      value={form.district}
-                      onChange={(e) => update("district", e.target.value)}
+                      placeholder="Min e.g. 50000"
+                      type="number"
+                      value={form.salaryMin}
+                      onChange={(e) => update("salaryMin", e.target.value)}
+                    />
+                    <Input
+                      placeholder="Max e.g. 100000"
+                      type="number"
+                      value={form.salaryMax}
+                      onChange={(e) => update("salaryMax", e.target.value)}
                     />
                   </div>
+                </div>
 
-                  {/* Job Type */}
-                  <div className="space-y-1.5">
-                    <Label>Job Type</Label>
-                    <Select
-                      value={form.jobType}
-                      onValueChange={(v) => update("jobType", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select job type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {JOB_TYPES.map((t) => (
-                          <SelectItem key={t.value} value={t.value}>
-                            {t.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                {/* Description */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="vac-desc">
+                    Job Description <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    id="vac-desc"
+                    placeholder="Describe the role, responsibilities, requirements, and benefits..."
+                    rows={5}
+                    value={form.description}
+                    onChange={(e) => update("description", e.target.value)}
+                    className="resize-none"
+                    required
+                  />
+                </div>
 
-                  {/* Status */}
-                  <div className="space-y-1.5">
-                    <Label>Status</Label>
-                    <Select
-                      value={form.status}
-                      onValueChange={(v) => update("status", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {STATUS_OPTIONS.map((s) => (
-                          <SelectItem key={s.value} value={s.value}>
-                            {s.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Salary Range */}
-                  <div className="space-y-1.5">
-                    <Label>Salary Range (INR / month)</Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input
-                        placeholder="Min e.g. 50000"
-                        type="number"
-                        value={form.salaryMin}
-                        onChange={(e) => update("salaryMin", e.target.value)}
-                      />
-                      <Input
-                        placeholder="Max e.g. 100000"
-                        type="number"
-                        value={form.salaryMax}
-                        onChange={(e) => update("salaryMax", e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div className="space-y-1.5">
-                    <Label htmlFor="vac-desc">
-                      Job Description{" "}
-                      <span className="text-destructive">*</span>
-                    </Label>
-                    <Textarea
-                      id="vac-desc"
-                      placeholder="Describe the role, responsibilities, requirements, and benefits..."
-                      rows={5}
-                      value={form.description}
-                      onChange={(e) => update("description", e.target.value)}
-                      className="resize-none"
-                      required
-                    />
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-3 pt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex-1"
-                      onClick={handleDraft}
-                    >
-                      <Bookmark className="w-4 h-4 mr-2" />
-                      Save as Draft
-                    </Button>
-                    <Button type="submit" className="flex-1">
-                      <PlusCircle className="w-4 h-4 mr-2" />
-                      Post Vacancy
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </div>
-          </ScrollArea>
+                {/* Actions */}
+                <div className="flex gap-3 pt-2 pb-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={handleDraft}
+                  >
+                    <Bookmark className="w-4 h-4 mr-2" />
+                    Save as Draft
+                  </Button>
+                  <Button type="submit" className="flex-1">
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    Post Vacancy
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
         </TabsContent>
 
         {/* ── Tab: India Vacancies ── */}
-        <TabsContent value="india" className="flex-1 mt-0 overflow-auto">
-          <ScrollArea className="h-full">
-            <div className="p-6 space-y-3">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-medium text-foreground">
-                  All New Vacancies — India
-                </p>
-                <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
-                  {newVacancies.length} listing
-                  {newVacancies.length !== 1 ? "s" : ""}
-                </span>
-              </div>
-              {newVacancies.length === 0 ? (
-                <EmptyState message="No new vacancies yet. Post one using the 'Post New' tab." />
-              ) : (
-                <div className="space-y-3">
-                  {newVacancies.map((job) => (
-                    <VacancyCard key={job.jobId} job={job} />
-                  ))}
-                </div>
-              )}
+        <TabsContent
+          value="india"
+          className="flex-1 min-h-0 mt-0 overflow-y-auto overscroll-contain"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <div className="p-6 space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-medium text-foreground">
+                All New Vacancies — India
+              </p>
+              <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                {newVacancies.length} listing
+                {newVacancies.length !== 1 ? "s" : ""}
+              </span>
             </div>
-          </ScrollArea>
+            {newVacancies.length === 0 ? (
+              <EmptyState message="No new vacancies yet. Post one using the 'Post New' tab." />
+            ) : (
+              <div className="space-y-3 pb-4">
+                {newVacancies.map((job) => (
+                  <VacancyCard key={job.jobId} job={job} />
+                ))}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* ── Tab: State Vacancies ── */}
-        <TabsContent value="state" className="flex-1 mt-0 overflow-auto">
-          <ScrollArea className="h-full">
-            <div className="p-6 space-y-4">
-              <div className="space-y-1.5">
-                <Label>Select State</Label>
-                <Select value={selectedState} onValueChange={setSelectedState}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a state to filter..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INDIAN_STATES.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {!selectedState ? (
-                <EmptyState message="Select a state above to view its new vacancies." />
-              ) : stateVacancies.length === 0 ? (
-                <EmptyState
-                  message={`No new vacancies found in ${selectedState}.`}
-                />
-              ) : (
-                <>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground">
-                      {selectedState}
-                    </p>
-                    <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
-                      {stateVacancies.length} listing
-                      {stateVacancies.length !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {stateVacancies.map((job) => (
-                      <VacancyCard key={job.jobId} job={job} />
-                    ))}
-                  </div>
-                </>
-              )}
+        <TabsContent
+          value="state"
+          className="flex-1 min-h-0 mt-0 overflow-y-auto overscroll-contain"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <div className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <Label>Select State</Label>
+              <Select value={selectedState} onValueChange={setSelectedState}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a state to filter..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDIAN_STATES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </ScrollArea>
+
+            {!selectedState ? (
+              <EmptyState message="Select a state above to view its new vacancies." />
+            ) : stateVacancies.length === 0 ? (
+              <EmptyState
+                message={`No new vacancies found in ${selectedState}.`}
+              />
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-foreground">
+                    {selectedState}
+                  </p>
+                  <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                    {stateVacancies.length} listing
+                    {stateVacancies.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="space-y-3 pb-4">
+                  {stateVacancies.map((job) => (
+                    <VacancyCard key={job.jobId} job={job} />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -45,6 +45,20 @@ export const JobApplication = IDL.Record({
   'email' : IDL.Text,
   'phone' : IDL.Text,
 });
+export const AuthMethod = IDL.Variant({
+  'email' : IDL.Record({ 'email' : IDL.Text }),
+  'phone' : IDL.Record({ 'phone' : IDL.Text }),
+});
+export const UserAccount = IDL.Record({
+  'userId' : IDL.Text,
+  'createdAt' : Time,
+  'authMethod' : AuthMethod,
+  'fullName' : IDL.Text,
+  'email' : IDL.Opt(IDL.Text),
+  'passwordHash' : IDL.Text,
+  'phone' : IDL.Opt(IDL.Text),
+});
+export const AuthResult = IDL.Variant({ 'ok' : UserAccount, 'err' : IDL.Text });
 export const ApplicationResult = IDL.Variant({
   'ok' : IDL.Text,
   'error' : IDL.Text,
@@ -72,11 +86,14 @@ export const idlService = IDL.Service({
     ),
   'getJobById' : IDL.Func([IDL.Text], [IDL.Opt(JobListing)], ['query']),
   'getJobCount' : IDL.Func([], [IDL.Nat], ['query']),
+  'getUserById' : IDL.Func([IDL.Text], [IDL.Opt(UserAccount)], ['query']),
   'getVacanciesByStatus' : IDL.Func(
       [VacancyStatus],
       [IDL.Vec(JobListing)],
       ['query'],
     ),
+  'loginWithEmail' : IDL.Func([IDL.Text, IDL.Text], [AuthResult], []),
+  'loginWithPhone' : IDL.Func([IDL.Text], [AuthResult], []),
   'postVacancy' : IDL.Func(
       [
         IDL.Text,
@@ -95,6 +112,12 @@ export const idlService = IDL.Service({
       [IDL.Text],
       [],
     ),
+  'registerWithEmail' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text],
+      [AuthResult],
+      [],
+    ),
+  'registerWithPhone' : IDL.Func([IDL.Text, IDL.Text], [AuthResult], []),
   'submitApplication' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
       [ApplicationResult],
@@ -142,6 +165,20 @@ export const idlFactory = ({ IDL }) => {
     'email' : IDL.Text,
     'phone' : IDL.Text,
   });
+  const AuthMethod = IDL.Variant({
+    'email' : IDL.Record({ 'email' : IDL.Text }),
+    'phone' : IDL.Record({ 'phone' : IDL.Text }),
+  });
+  const UserAccount = IDL.Record({
+    'userId' : IDL.Text,
+    'createdAt' : Time,
+    'authMethod' : AuthMethod,
+    'fullName' : IDL.Text,
+    'email' : IDL.Opt(IDL.Text),
+    'passwordHash' : IDL.Text,
+    'phone' : IDL.Opt(IDL.Text),
+  });
+  const AuthResult = IDL.Variant({ 'ok' : UserAccount, 'err' : IDL.Text });
   const ApplicationResult = IDL.Variant({
     'ok' : IDL.Text,
     'error' : IDL.Text,
@@ -169,11 +206,14 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getJobById' : IDL.Func([IDL.Text], [IDL.Opt(JobListing)], ['query']),
     'getJobCount' : IDL.Func([], [IDL.Nat], ['query']),
+    'getUserById' : IDL.Func([IDL.Text], [IDL.Opt(UserAccount)], ['query']),
     'getVacanciesByStatus' : IDL.Func(
         [VacancyStatus],
         [IDL.Vec(JobListing)],
         ['query'],
       ),
+    'loginWithEmail' : IDL.Func([IDL.Text, IDL.Text], [AuthResult], []),
+    'loginWithPhone' : IDL.Func([IDL.Text], [AuthResult], []),
     'postVacancy' : IDL.Func(
         [
           IDL.Text,
@@ -192,6 +232,12 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Text],
         [],
       ),
+    'registerWithEmail' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text],
+        [AuthResult],
+        [],
+      ),
+    'registerWithPhone' : IDL.Func([IDL.Text, IDL.Text], [AuthResult], []),
     'submitApplication' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
         [ApplicationResult],

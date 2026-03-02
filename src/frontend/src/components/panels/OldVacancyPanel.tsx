@@ -1,7 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -117,7 +116,7 @@ export function OldVacancyPanel({ allVacancies = [] }: OldVacancyPanelProps) {
     : [];
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Panel Header */}
       <div className="px-6 pt-6 pb-4 border-b border-border">
         <h2 className="text-xl font-display font-bold text-foreground">
@@ -144,77 +143,81 @@ export function OldVacancyPanel({ allVacancies = [] }: OldVacancyPanelProps) {
         </TabsList>
 
         {/* ── Tab: India Old Vacancies ── */}
-        <TabsContent value="india" className="flex-1 mt-0 overflow-auto">
-          <ScrollArea className="h-full">
-            <div className="p-6 space-y-3">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-medium text-foreground">
-                  All Old Vacancies — India
-                </p>
-                <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
-                  {oldVacancies.length} listing
-                  {oldVacancies.length !== 1 ? "s" : ""}
-                </span>
-              </div>
-              {oldVacancies.length === 0 ? (
-                <EmptyState message="No old vacancies found. Listings marked as 'Old' will appear here." />
-              ) : (
-                <div className="space-y-3">
-                  {oldVacancies.map((job) => (
-                    <VacancyCard key={job.jobId} job={job} />
-                  ))}
-                </div>
-              )}
+        <TabsContent
+          value="india"
+          className="flex-1 min-h-0 mt-0 overflow-y-auto overscroll-contain"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <div className="p-6 space-y-3">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm font-medium text-foreground">
+                All Old Vacancies — India
+              </p>
+              <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                {oldVacancies.length} listing
+                {oldVacancies.length !== 1 ? "s" : ""}
+              </span>
             </div>
-          </ScrollArea>
+            {oldVacancies.length === 0 ? (
+              <EmptyState message="No old vacancies found. Listings marked as 'Old' will appear here." />
+            ) : (
+              <div className="space-y-3 pb-4">
+                {oldVacancies.map((job) => (
+                  <VacancyCard key={job.jobId} job={job} />
+                ))}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* ── Tab: State Old Vacancies ── */}
-        <TabsContent value="state" className="flex-1 mt-0 overflow-auto">
-          <ScrollArea className="h-full">
-            <div className="p-6 space-y-4">
-              <div className="space-y-1.5">
-                <Label>Select State</Label>
-                <Select value={selectedState} onValueChange={setSelectedState}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a state to filter..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INDIAN_STATES.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {!selectedState ? (
-                <EmptyState message="Select a state above to view its old vacancies." />
-              ) : stateOldVacancies.length === 0 ? (
-                <EmptyState
-                  message={`No old vacancies found in ${selectedState}.`}
-                />
-              ) : (
-                <>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground">
-                      {selectedState}
-                    </p>
-                    <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
-                      {stateOldVacancies.length} listing
-                      {stateOldVacancies.length !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {stateOldVacancies.map((job) => (
-                      <VacancyCard key={job.jobId} job={job} />
-                    ))}
-                  </div>
-                </>
-              )}
+        <TabsContent
+          value="state"
+          className="flex-1 min-h-0 mt-0 overflow-y-auto overscroll-contain"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          <div className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <Label>Select State</Label>
+              <Select value={selectedState} onValueChange={setSelectedState}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a state to filter..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDIAN_STATES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </ScrollArea>
+
+            {!selectedState ? (
+              <EmptyState message="Select a state above to view its old vacancies." />
+            ) : stateOldVacancies.length === 0 ? (
+              <EmptyState
+                message={`No old vacancies found in ${selectedState}.`}
+              />
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-foreground">
+                    {selectedState}
+                  </p>
+                  <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                    {stateOldVacancies.length} listing
+                    {stateOldVacancies.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="space-y-3 pb-4">
+                  {stateOldVacancies.map((job) => (
+                    <VacancyCard key={job.jobId} job={job} />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
 

@@ -1,23 +1,26 @@
-import Map "mo:core/Map";
 import List "mo:core/List";
-import Nat "mo:core/Nat";
-import Iter "mo:core/Iter";
-import Order "mo:core/Order";
-import Array "mo:core/Array";
-import Time "mo:core/Time";
 import Text "mo:core/Text";
-import Runtime "mo:core/Runtime";
+import Iter "mo:core/Iter";
+import Time "mo:core/Time";
+import Map "mo:core/Map";
+import Array "mo:core/Array";
+import Order "mo:core/Order";
+import Nat "mo:core/Nat";
 
 
 
 actor {
-  module JobListing {
-    public func compare(a : JobListing, b : JobListing) : Order.Order {
-      switch (Text.compare(a.jobId, b.jobId)) {
-        case (#equal) { Text.compare(a.title, b.title) };
-        case (order) { order };
-      };
-    };
+  type VacancyStatus = {
+    #new_;
+    #old;
+    #draft;
+  };
+
+  type JobType = {
+    #fullTime;
+    #partTime;
+    #contract;
+    #remote;
   };
 
   module JobType {
@@ -38,19 +41,6 @@ actor {
     };
   };
 
-  type VacancyStatus = {
-    #new_;
-    #old;
-    #draft;
-  };
-
-  type JobType = {
-    #fullTime;
-    #partTime;
-    #contract;
-    #remote;
-  };
-
   type JobListing = {
     jobId : Text;
     title : Text;
@@ -68,6 +58,15 @@ actor {
     status : VacancyStatus;
   };
 
+  module JobListing {
+    public func compare(a : JobListing, b : JobListing) : Order.Order {
+      switch (Text.compare(a.jobId, b.jobId)) {
+        case (#equal) { Text.compare(a.title, b.title) };
+        case (order) { order };
+      };
+    };
+  };
+
   type JobApplication = {
     applicationId : Text;
     jobId : Text;
@@ -83,8 +82,30 @@ actor {
     #error : Text;
   };
 
+  type AuthMethod = {
+    #email : { email : Text };
+    #phone : { phone : Text };
+  };
+
+  type UserAccount = {
+    userId : Text;
+    fullName : Text;
+    email : ?Text;
+    phone : ?Text;
+    createdAt : Time.Time;
+    authMethod : AuthMethod;
+    passwordHash : Text;
+  };
+
+  type AuthResult = {
+    #ok : UserAccount;
+    #err : Text;
+  };
+
   var nextJobId = 6;
   var nextApplicationId = 1;
+
+  var nextUserId = 1;
 
   let jobListings = Map.fromIter<Text, JobListing>(
     [
@@ -206,6 +227,114 @@ actor {
   );
 
   let jobApplications = Map.empty<Text, JobApplication>();
+
+  let userAccounts = Map.empty<Text, UserAccount>();
+
+  public shared ({ caller }) func registerWithEmail(fullName : Text, email : Text, passwordHash : Text) : async AuthResult {
+    let emailExists = userAccounts.values().any(
+      func(u) {
+        switch (u.email) {
+          case (null) { false };
+          case (?e) { Text.equal(e, email) };
+        };
+      }
+    );
+
+    if (emailExists) {
+      return #err("email_exists");
+    };
+
+    let userId = nextUserId.toText();
+    nextUserId += 1;
+
+    let newUser : UserAccount = {
+      userId;
+      fullName;
+      email = ?email;
+      phone = null : ?Text;
+      createdAt = Time.now();
+      authMethod = #email { email };
+      passwordHash;
+    };
+
+    userAccounts.add(userId, newUser);
+
+    #ok(newUser);
+  };
+
+  public shared ({ caller }) func loginWithEmail(email : Text, passwordHash : Text) : async AuthResult {
+    let userOpt = userAccounts.values().find(
+      func(u) {
+        switch (u.email) {
+          case (null) { false };
+          case (?e) { Text.equal(e, email) };
+        };
+      }
+    );
+
+    switch (userOpt) {
+      case (null) { #err("not_found") };
+      case (?user) {
+        if (Text.equal(user.passwordHash, passwordHash)) {
+          #ok(user);
+        } else {
+          #err("wrong_password");
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func registerWithPhone(fullName : Text, phone : Text) : async AuthResult {
+    let phoneExists = userAccounts.values().any(
+      func(u) {
+        switch (u.phone) {
+          case (null) { false };
+          case (?p) { Text.equal(p, phone) };
+        };
+      }
+    );
+
+    if (phoneExists) {
+      return #err("phone_exists");
+    };
+
+    let userId = nextUserId.toText();
+    nextUserId += 1;
+
+    let newUser : UserAccount = {
+      userId;
+      fullName;
+      email = null : ?Text;
+      phone = ?phone;
+      createdAt = Time.now();
+      authMethod = #phone { phone };
+      passwordHash = "";
+    };
+
+    userAccounts.add(userId, newUser);
+
+    #ok(newUser);
+  };
+
+  public shared ({ caller }) func loginWithPhone(phone : Text) : async AuthResult {
+    let userOpt = userAccounts.values().find(
+      func(u) {
+        switch (u.phone) {
+          case (null) { false };
+          case (?p) { Text.equal(p, phone) };
+        };
+      }
+    );
+
+    switch (userOpt) {
+      case (null) { #err("not_found") };
+      case (?user) { #ok(user) };
+    };
+  };
+
+  public query ({ caller }) func getUserById(userId : Text) : async ?UserAccount {
+    userAccounts.get(userId);
+  };
 
   public query ({ caller }) func getAllJobs() : async [JobListing] {
     jobListings.values().toArray().sort();

@@ -11,10 +11,12 @@ import {
   FileText,
   Gift,
   IdCard,
+  LogOut,
   MapPin,
   Palette,
   PlusCircle,
 } from "lucide-react";
+import type { AuthUser } from "./panels/AuthPanel";
 
 export type PanelId =
   | "auth"
@@ -25,6 +27,7 @@ export type PanelId =
   | "old-vacancy"
   | "draft-vacancy"
   | "refer-earn"
+  | "withdrawal"
   | null;
 
 interface MenuItem {
@@ -79,6 +82,7 @@ interface SideMenuProps {
   onClose: () => void;
   onSelectPanel: (panel: PanelId) => void;
   onLogout?: () => void;
+  user?: AuthUser | null;
 }
 
 export function SideMenu({
@@ -86,6 +90,7 @@ export function SideMenu({
   activePanel,
   onClose,
   onSelectPanel,
+  onLogout,
 }: SideMenuProps) {
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -160,10 +165,7 @@ export function SideMenu({
             )}
           </button>
 
-          {/* Divider */}
-          <div className="mx-1 my-1 border-t border-border/60" />
-
-          {/* Remaining menu items */}
+          {/* Menu items: Themes, Locations, New Vacancy, Old Vacancy, Draft Vacancy, Refer & Earn */}
           <ul className="space-y-0">
             {MENU_ITEMS.map(({ id, label, icon: Icon, description }) => {
               const isActive = activePanel === id;
@@ -211,6 +213,31 @@ export function SideMenu({
               );
             })}
           </ul>
+
+          {/* Thin divider before Logout */}
+          <div className="border-t border-border/60 mx-3 my-1" />
+
+          {/* Logout — always visible */}
+          <button
+            type="button"
+            onClick={() => {
+              onLogout?.();
+              onClose();
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all duration-150 group hover:bg-red-500/10"
+          >
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-500/10 text-red-600 group-hover:bg-red-500/20 transition-colors">
+              <LogOut className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold leading-tight text-red-600">
+                Logout
+              </div>
+              <div className="text-xs text-muted-foreground truncate">
+                Sign out of your account
+              </div>
+            </div>
+          </button>
         </nav>
 
         {/* Spacer to push footer to bottom */}

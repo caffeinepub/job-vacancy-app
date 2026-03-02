@@ -8,8 +8,10 @@ import { Separator } from "@/components/ui/separator";
 import {
   Bookmark,
   Briefcase,
+  Calendar,
   ChevronRight,
-  LogIn,
+  Fingerprint,
+  LogOut,
   Mail,
   Phone,
   Shield,
@@ -17,11 +19,14 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { AuthPanel } from "./AuthPanel";
 import type { AuthUser } from "./AuthPanel";
 
 interface YourIdPanelProps {
   user: AuthUser | null;
   onOpenAuth?: () => void;
+  onLogin?: (user: AuthUser) => void;
+  onLogout?: () => void;
 }
 
 const PROFILE_ITEMS = [
@@ -39,7 +44,17 @@ const PROFILE_ITEMS = [
   },
 ];
 
-export function YourIdPanel({ user, onOpenAuth }: YourIdPanelProps) {
+function formatDate(ts: number): string {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  return d.toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+export function YourIdPanel({ user, onLogin, onLogout }: YourIdPanelProps) {
   const [editMode, setEditMode] = useState(false);
   const [profileData, setProfileData] = useState({
     phone: localStorage.getItem("jf_user_phone") || "",
@@ -49,7 +64,7 @@ export function YourIdPanel({ user, onOpenAuth }: YourIdPanelProps) {
 
   const completionFields = [
     !!user?.name,
-    !!user?.email,
+    !!(user?.email || user?.phone),
     !!profileData.phone,
     !!profileData.location,
     !!profileData.jobTitle,
@@ -67,46 +82,19 @@ export function YourIdPanel({ user, onOpenAuth }: YourIdPanelProps) {
     toast.success("Profile updated successfully!");
   }
 
-  // ── Guest / not logged in ──
+  // ── Guest / not logged in: show inline AuthPanel ──
   if (!user) {
     return (
-      <div className="p-6 space-y-6">
-        <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-gradient-to-b from-primary/10 to-secondary/40 border border-primary/20 space-y-4">
-          <Avatar className="w-20 h-20 border-4 border-primary/20 shadow-lg">
-            <AvatarFallback className="text-2xl font-display font-bold bg-primary/15 text-primary">
-              G
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className="font-display font-bold text-xl text-foreground">
-              Guest User
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Sign in to view your profile, track applications, and complete
-              your ID.
-            </p>
-          </div>
-          <Badge variant="secondary" className="text-xs">
-            Not signed in
-          </Badge>
-          <Button onClick={onOpenAuth} className="w-full gap-2">
-            <LogIn className="w-4 h-4" />
-            Sign in / Create Account
-          </Button>
-        </div>
-
-        <div className="p-4 rounded-xl bg-card border border-border space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground">
-              Profile Completion
-            </span>
-            <span className="text-sm font-bold text-primary">0%</span>
-          </div>
-          <Progress value={0} className="h-2" />
-          <p className="text-xs text-muted-foreground">
-            Sign in and complete your profile to get 3× more job matches.
+      <div className="p-6 space-y-4">
+        <div className="text-center mb-2">
+          <h3 className="font-display font-bold text-lg text-foreground">
+            Your ID
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Login or sign up to access your profile.
           </p>
         </div>
+        <AuthPanel onLogin={(u) => onLogin?.(u)} />
       </div>
     );
   }
@@ -118,6 +106,11 @@ export function YourIdPanel({ user, onOpenAuth }: YourIdPanelProps) {
     .join("")
     .toUpperCase()
     .slice(0, 2);
+
+  const displayContact = user.email || user.phone || "—";
+  const authBadgeLabel =
+    user.authMethod === "email" ? "Email Account" : "Phone Account";
+  const shortId = `#JF-${user.userId.slice(0, 8).toUpperCase()}`;
 
   return (
     <div className="p-6 space-y-6">
@@ -131,15 +124,63 @@ export function YourIdPanel({ user, onOpenAuth }: YourIdPanelProps) {
         <h3 className="font-display font-bold text-xl text-foreground">
           {user.name}
         </h3>
-        <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
+        <p className="text-sm text-muted-foreground mt-1">{displayContact}</p>
         {profileData.jobTitle && (
           <p className="text-xs text-primary font-medium mt-1">
             {profileData.jobTitle}
           </p>
         )}
-        <Badge className="mt-3 text-xs bg-emerald-500/15 text-emerald-700 border-emerald-300/40">
-          Active Member
-        </Badge>
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+          <Badge className="text-xs bg-emerald-500/15 text-emerald-700 border-emerald-300/40">
+            Active Member
+          </Badge>
+          <Badge
+            variant="outline"
+            className="text-xs font-mono border-primary/30 text-primary/80"
+          >
+            {shortId}
+          </Badge>
+          <Badge variant="secondary" className="text-xs">
+            {authBadgeLabel}
+          </Badge>
+        </div>
+
+        {/* Account meta */}
+        <div className="w-full mt-4 space-y-1.5 text-left">
+          {user.email && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Mail className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="truncate">{user.email}</span>
+            </div>
+          )}
+          {user.phone && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{user.phone}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Fingerprint className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="font-mono">User ID: {shortId}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>Member since: {formatDate(user.createdAt)}</span>
+          </div>
+        </div>
+
+        {/* Logout button */}
+        <Button
+          variant="destructive"
+          className="w-full mt-5 gap-2 bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-300/40 shadow-none"
+          onClick={() => {
+            toast.success("Logged out successfully.");
+            onLogout?.();
+          }}
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </Button>
       </div>
 
       {/* Stats */}

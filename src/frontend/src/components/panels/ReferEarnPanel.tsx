@@ -81,7 +81,11 @@ const REFERRAL_LINK = "jobfinder.in/ref/USER123";
 const REFERRAL_URL = `https://${REFERRAL_LINK}`;
 const WA_MESSAGE = `Bhai, Job Finder app try kar! Isme sabhi New aur Old vacancies ki detail milti hai. Mere link se download kar: ${REFERRAL_URL}`;
 
-export function ReferEarnPanel() {
+interface ReferEarnPanelProps {
+  onWithdraw?: () => void;
+}
+
+export function ReferEarnPanel({ onWithdraw }: ReferEarnPanelProps) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
@@ -369,7 +373,10 @@ export function ReferEarnPanel() {
 
           {/* Action buttons */}
           <div className="flex gap-2 mb-3">
-            <Button className="flex-1 h-10 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-700 text-white">
+            <Button
+              onClick={onWithdraw}
+              className="flex-1 h-10 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
               Withdraw
             </Button>
             <Button

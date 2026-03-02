@@ -12,6 +12,10 @@ import type { Principal } from '@icp-sdk/core/principal';
 
 export type ApplicationResult = { 'ok' : string } |
   { 'error' : string };
+export type AuthMethod = { 'email' : { 'email' : string } } |
+  { 'phone' : { 'phone' : string } };
+export type AuthResult = { 'ok' : UserAccount } |
+  { 'err' : string };
 export interface JobApplication {
   'applicantName' : string,
   'applicationId' : string,
@@ -42,6 +46,15 @@ export type JobType = { 'remote' : null } |
   { 'partTime' : null } |
   { 'fullTime' : null };
 export type Time = bigint;
+export interface UserAccount {
+  'userId' : string,
+  'createdAt' : Time,
+  'authMethod' : AuthMethod,
+  'fullName' : string,
+  'email' : [] | [string],
+  'passwordHash' : string,
+  'phone' : [] | [string],
+}
 export type VacancyStatus = { 'new' : null } |
   { 'old' : null } |
   { 'draft' : null };
@@ -60,7 +73,10 @@ export interface _SERVICE {
   'getApplicationsForJob' : ActorMethod<[string], Array<JobApplication>>,
   'getJobById' : ActorMethod<[string], [] | [JobListing]>,
   'getJobCount' : ActorMethod<[], bigint>,
+  'getUserById' : ActorMethod<[string], [] | [UserAccount]>,
   'getVacanciesByStatus' : ActorMethod<[VacancyStatus], Array<JobListing>>,
+  'loginWithEmail' : ActorMethod<[string, string], AuthResult>,
+  'loginWithPhone' : ActorMethod<[string], AuthResult>,
   'postVacancy' : ActorMethod<
     [
       string,
@@ -78,6 +94,8 @@ export interface _SERVICE {
     ],
     string
   >,
+  'registerWithEmail' : ActorMethod<[string, string, string], AuthResult>,
+  'registerWithPhone' : ActorMethod<[string, string], AuthResult>,
   'submitApplication' : ActorMethod<
     [string, string, string, string, string],
     ApplicationResult
