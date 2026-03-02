@@ -6,7 +6,16 @@ import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export function AuthPanel() {
+export interface AuthUser {
+  name: string;
+  email: string;
+}
+
+interface AuthPanelProps {
+  onLogin?: (user: AuthUser) => void;
+}
+
+export function AuthPanel({ onLogin }: AuthPanelProps) {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -20,16 +29,39 @@ export function AuthPanel() {
 
   function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
-    toast.info("Feature coming soon", {
-      description: "Authentication will be available in the next update.",
-    });
+    if (!signIn.email || !signIn.password) {
+      toast.error("Please enter your email and password.");
+      return;
+    }
+    // Use stored name if available, else derive from email
+    const storedName =
+      localStorage.getItem("jf_user_name") || signIn.email.split("@")[0];
+    const user: AuthUser = { name: storedName, email: signIn.email };
+    localStorage.setItem("jf_user_name", user.name);
+    localStorage.setItem("jf_user_email", user.email);
+    toast.success(`Welcome back, ${user.name}!`);
+    onLogin?.(user);
   }
 
   function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
-    toast.info("Feature coming soon", {
-      description: "Account creation will be available in the next update.",
-    });
+    if (!signUp.name || !signUp.email || !signUp.password) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (signUp.password !== signUp.confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+    if (signUp.password.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    const user: AuthUser = { name: signUp.name, email: signUp.email };
+    localStorage.setItem("jf_user_name", user.name);
+    localStorage.setItem("jf_user_email", user.email);
+    toast.success(`Account created! Welcome, ${user.name}!`);
+    onLogin?.(user);
   }
 
   return (
@@ -108,11 +140,7 @@ export function AuthPanel() {
               <button
                 type="button"
                 className="text-primary underline hover:text-primary/80"
-                onClick={() =>
-                  toast.info("Feature coming soon", {
-                    description: "Password reset will be available soon.",
-                  })
-                }
+                onClick={() => toast.info("Password reset coming soon.")}
               >
                 Reset it
               </button>
@@ -155,7 +183,7 @@ export function AuthPanel() {
                 <Input
                   id="signup-password"
                   type={showPass ? "text" : "password"}
-                  placeholder="Min. 8 characters"
+                  placeholder="Min. 6 characters"
                   value={signUp.password}
                   onChange={(e) =>
                     setSignUp((p) => ({ ...p, password: e.target.value }))

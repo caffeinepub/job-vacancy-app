@@ -11,8 +11,6 @@ import {
   FileText,
   Gift,
   IdCard,
-  LogIn,
-  LogOut,
   MapPin,
   Palette,
   PlusCircle,
@@ -80,6 +78,7 @@ interface SideMenuProps {
   activePanel: PanelId;
   onClose: () => void;
   onSelectPanel: (panel: PanelId) => void;
+  onLogout?: () => void;
 }
 
 export function SideMenu({
@@ -214,63 +213,8 @@ export function SideMenu({
           </ul>
         </nav>
 
-        {/* Spacer to push auth section to bottom */}
+        {/* Spacer to push footer to bottom */}
         <div className="flex-1" />
-
-        {/* Bottom Auth Section */}
-        <div className="flex-none px-3 py-2 border-t border-border space-y-0">
-          {/* Sign in / Login */}
-          <button
-            type="button"
-            onClick={() => onSelectPanel("auth")}
-            className={cn(
-              "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all duration-150 group",
-              activePanel === "auth"
-                ? "bg-primary/10 text-primary"
-                : "text-foreground hover:bg-secondary/70 hover:text-foreground",
-            )}
-          >
-            <div
-              className={cn(
-                "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors",
-                activePanel === "auth"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary",
-              )}
-            >
-              <LogIn className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold leading-tight">
-                Sign in / Login
-              </div>
-              <div className="text-xs text-muted-foreground truncate">
-                Create account or sign in
-              </div>
-            </div>
-          </button>
-
-          {/* Log out */}
-          <button
-            type="button"
-            onClick={() => {
-              /* log out handler */
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left transition-all duration-150 group hover:bg-red-500/10"
-          >
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-500/10 text-red-500 group-hover:bg-red-500/20 transition-colors">
-              <LogOut className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold leading-tight text-red-500">
-                Log out
-              </div>
-              <div className="text-xs text-red-400/70 truncate">
-                Sign out of your account
-              </div>
-            </div>
-          </button>
-        </div>
 
         {/* Footer tagline */}
         <div className="flex-none px-5 py-2 border-t border-border bg-secondary/30">

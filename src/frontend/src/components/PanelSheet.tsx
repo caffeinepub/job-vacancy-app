@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/sheet";
 import type { JobListing } from "../data/jobs";
 import type { PanelId } from "./SideMenu";
+import type { AuthUser } from "./panels/AuthPanel";
 import { AuthPanel } from "./panels/AuthPanel";
 import { DraftVacancyPanel } from "./panels/DraftVacancyPanel";
 import { LocationsPanel } from "./panels/LocationsPanel";
@@ -62,6 +63,9 @@ interface PanelSheetProps {
   activeState: string;
   onNewJob?: (job: JobListing) => void;
   allVacancies?: JobListing[];
+  user: AuthUser | null;
+  onLogin?: (user: AuthUser) => void;
+  onOpenAuth?: () => void;
 }
 
 export function PanelSheet({
@@ -71,6 +75,9 @@ export function PanelSheet({
   activeState,
   onNewJob,
   allVacancies = [],
+  user,
+  onLogin,
+  onOpenAuth,
 }: PanelSheetProps) {
   const isOpen = activePanel !== null;
   const meta = activePanel ? PANEL_META[activePanel] : null;
@@ -88,7 +95,14 @@ export function PanelSheet({
           </SheetHeader>
         )}
         <ScrollArea className="flex-1">
-          {activePanel === "auth" && <AuthPanel />}
+          {activePanel === "auth" && (
+            <AuthPanel
+              onLogin={(u) => {
+                onLogin?.(u);
+                onClose();
+              }}
+            />
+          )}
           {activePanel === "themes" && <ThemesPanel />}
           {activePanel === "locations" && (
             <LocationsPanel
@@ -99,7 +113,14 @@ export function PanelSheet({
               activeState={activeState}
             />
           )}
-          {activePanel === "your-id" && <YourIdPanel />}
+          {activePanel === "your-id" && (
+            <YourIdPanel
+              user={user}
+              onOpenAuth={() => {
+                onOpenAuth?.();
+              }}
+            />
+          )}
           {activePanel === "new-vacancy" && (
             <NewVacancyPanel
               onPost={(job) => {

@@ -18,8 +18,10 @@ import { VacancyStatus } from "./backend.d";
 import { ApplyModal } from "./components/ApplyModal";
 import { FilterBar, type Filters } from "./components/FilterBar";
 import { HomeGrid } from "./components/HomeGrid";
+import { OnboardingFlow } from "./components/OnboardingFlow";
 import { PanelSheet } from "./components/PanelSheet";
 import { type PanelId, SideMenu } from "./components/SideMenu";
+import type { AuthUser } from "./components/panels/AuthPanel";
 import { applyStoredTheme } from "./components/panels/ThemesPanel";
 import { type JobListing, SAMPLE_JOBS } from "./data/jobs";
 
@@ -39,6 +41,32 @@ const STATS = [
 ];
 
 export default function App() {
+  // ── Onboarding state (must be before any early return) ──
+  const [onboardingDone, setOnboardingDone] = useState<boolean>(
+    () => localStorage.getItem("jf_onboarding_done") === "true",
+  );
+
+  // ── Auth state ──
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const name = localStorage.getItem("jf_user_name");
+    const email = localStorage.getItem("jf_user_email");
+    return name && email ? { name, email } : null;
+  });
+
+  function handleLogin(u: AuthUser) {
+    setUser(u);
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("jf_user_name");
+    localStorage.removeItem("jf_user_email");
+    localStorage.removeItem("jf_user_phone");
+    localStorage.removeItem("jf_user_location");
+    localStorage.removeItem("jf_user_job_title");
+    setUser(null);
+  }
+
+  // ── App state ──
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
   const [postedJobs, setPostedJobs] = useState<JobListing[]>([]);
@@ -61,10 +89,6 @@ export default function App() {
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [isDrawerOpen, activePanel]);
-
-  function handleMenuItemSelect(panel: PanelId) {
-    setActivePanel(panel);
-  }
 
   const allJobs = useMemo(() => [...postedJobs, ...SAMPLE_JOBS], [postedJobs]);
 
@@ -106,6 +130,21 @@ export default function App() {
     [baseFilteredJobs],
   );
 
+  function handleOnboardingComplete(language: string) {
+    localStorage.setItem("jf_language", language);
+    localStorage.setItem("jf_onboarding_done", "true");
+    setOnboardingDone(true);
+  }
+
+  function handleMenuItemSelect(panel: PanelId) {
+    setActivePanel(panel);
+  }
+
+  // Show onboarding overlay on first launch
+  if (!onboardingDone) {
+    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Side Drawer */}
@@ -114,6 +153,7 @@ export default function App() {
         activePanel={activePanel}
         onClose={() => setIsDrawerOpen(false)}
         onSelectPanel={handleMenuItemSelect}
+        onLogout={handleLogout}
       />
 
       {/* Panel Sheet (right side) */}
@@ -124,6 +164,9 @@ export default function App() {
         activeState="all"
         onNewJob={(job) => setPostedJobs((prev) => [job, ...prev])}
         allVacancies={allJobs}
+        user={user}
+        onLogin={handleLogin}
+        onOpenAuth={() => setActivePanel("auth")}
       />
 
       {/* ──────────────── Header / Nav ──────────────── */}
@@ -410,18 +453,12 @@ export default function App() {
           </div>
 
           {/* Copyright Row */}
-          <div className="border-t border-border mt-6 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-            <p>© 2026 JobFinder India. All rights reserved.</p>
-            <p>
-              Built with ❤️ using{" "}
-              <a
-                href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(typeof window !== "undefined" ? window.location.hostname : "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-foreground transition-colors"
-              >
-                caffeine.ai
-              </a>
+          <div className="border-t border-border mt-6 pt-5 flex flex-col items-center text-center">
+            <p className="text-xs font-normal text-muted-foreground">
+              © 2026 JobFinder India. All rights reserved.
+            </p>
+            <p className="text-xs font-normal text-muted-foreground mt-1">
+              Developed by Saurabh_Anshul_
             </p>
           </div>
         </div>
