@@ -2,14 +2,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Building2, Smartphone, Wallet } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  Clock,
+  History,
+  Smartphone,
+  Wallet,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-type Screen = "select" | "upi" | "bank";
+type Screen = "select" | "upi" | "bank" | "history";
 
 interface WithdrawalPanelProps {
   onBack: () => void;
+  initialScreen?: Screen;
 }
 
 interface BankRequest {
@@ -82,9 +90,11 @@ function EarningsCard() {
 function SelectMethodScreen({
   onSelect,
   onBack,
+  onViewHistory,
 }: {
   onSelect: (method: "upi" | "bank") => void;
   onBack: () => void;
+  onViewHistory: () => void;
 }) {
   return (
     <div className="flex flex-col h-full">
@@ -178,6 +188,17 @@ function SelectMethodScreen({
             Ensure your details are correct before submitting.
           </p>
         </div>
+
+        {/* View History button */}
+        <button
+          type="button"
+          data-ocid="withdrawal.select.view_history_button"
+          onClick={onViewHistory}
+          className="w-full flex items-center justify-center gap-2 h-11 rounded-xl border-2 border-border hover:border-emerald-500 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/10 text-sm font-semibold text-muted-foreground hover:text-emerald-700 dark:hover:text-emerald-400 transition-all"
+        >
+          <History className="w-4 h-4" />
+          View Withdrawal History
+        </button>
 
         <div className="h-4" />
       </div>
@@ -729,9 +750,182 @@ function BankFormScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
+// ─── History screen ───────────────────────────────────────────────────────────
+type WithdrawalRequest = (UpiRequest | BankRequest) & { status?: string };
+
+function WithdrawalHistoryScreen({ onBack }: { onBack: () => void }) {
+  const [history] = useState<WithdrawalRequest[]>(() => {
+    try {
+      const raw = localStorage.getItem("jf_withdrawal_requests");
+      if (raw) return JSON.parse(raw) as WithdrawalRequest[];
+    } catch {
+      // ignore
+    }
+    return [];
+  });
+
+  function formatDate(iso: string): string {
+    try {
+      return new Date(iso).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch {
+      return iso;
+    }
+  }
+
+  return (
+    <div className="flex flex-col h-full" data-ocid="withdrawal.history.panel">
+      {/* Sticky header */}
+      <div className="flex-none flex items-center gap-3 px-4 py-3 border-b border-border bg-card/95 backdrop-blur-sm shadow-sm">
+        <button
+          type="button"
+          onClick={onBack}
+          data-ocid="withdrawal.history.back_button"
+          className="w-9 h-9 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors flex-shrink-0"
+          aria-label="Back to withdrawal options"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          </div>
+          <h2 className="text-base font-bold text-foreground tracking-tight">
+            Withdrawal History
+          </h2>
+        </div>
+        {history.length > 0 && (
+          <span className="ml-auto text-xs font-semibold bg-muted text-muted-foreground rounded-full px-2 py-0.5">
+            {history.length}
+          </span>
+        )}
+      </div>
+
+      {/* Scrollable content */}
+      <div
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-3"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        {history.length === 0 ? (
+          /* Empty state */
+          <div
+            data-ocid="withdrawal.history.empty_state"
+            className="flex flex-col items-center justify-center py-20 text-center px-6"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+              <History className="w-8 h-8 text-muted-foreground/50" />
+            </div>
+            <p className="text-sm font-semibold text-foreground mb-1">
+              No withdrawal history available.
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
+              Your submitted withdrawal requests will appear here once you make
+              your first request.
+            </p>
+          </div>
+        ) : (
+          /* History list */
+          <div className="space-y-2" data-ocid="withdrawal.history.list">
+            {[...history].reverse().map((req, idx) => {
+              const isUpi = req.withdrawal_method === "UPI";
+              const reversedIdx = history.length - idx;
+              return (
+                <Card
+                  key={`${req.request_date}-${idx}`}
+                  className="rounded-2xl border border-border shadow-sm overflow-hidden"
+                  data-ocid={`withdrawal.history.item.${reversedIdx}`}
+                >
+                  <CardContent className="px-4 py-3">
+                    {/* Top row: method badge + amount + status */}
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        {/* Method badge */}
+                        <span
+                          className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                            isUpi
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                              : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                          }`}
+                        >
+                          {isUpi ? (
+                            <Smartphone className="w-3 h-3" />
+                          ) : (
+                            <Building2 className="w-3 h-3" />
+                          )}
+                          {isUpi ? "UPI" : "BANK"}
+                        </span>
+
+                        {/* Status badge */}
+                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                          Pending
+                        </span>
+                      </div>
+
+                      {/* Amount */}
+                      <p className="text-base font-extrabold text-foreground tabular-nums">
+                        ₹{req.withdrawal_amount.toLocaleString("en-IN")}
+                      </p>
+                    </div>
+
+                    {/* Details row */}
+                    <div className="space-y-0.5">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <span className="font-medium text-foreground/70">
+                          Name:
+                        </span>{" "}
+                        {req.account_holder_name}
+                      </p>
+                      {isUpi && (req as UpiRequest).upi_id && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <span className="font-medium text-foreground/70">
+                            UPI ID:
+                          </span>{" "}
+                          <span className="font-mono">
+                            {(req as UpiRequest).upi_id}
+                          </span>
+                        </p>
+                      )}
+                      {!isUpi && (req as BankRequest).ifsc_code && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <span className="font-medium text-foreground/70">
+                            IFSC:
+                          </span>{" "}
+                          <span className="font-mono tracking-wider">
+                            {(req as BankRequest).ifsc_code}
+                          </span>
+                        </p>
+                      )}
+                      {/* Date */}
+                      <p className="text-xs text-muted-foreground/70 pt-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3 flex-shrink-0" />
+                        {formatDate(req.request_date)}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="h-4" />
+      </div>
+    </div>
+  );
+}
+
 // ─── Root panel ───────────────────────────────────────────────────────────────
-export function WithdrawalPanel({ onBack }: WithdrawalPanelProps) {
-  const [screen, setScreen] = useState<Screen>("select");
+export function WithdrawalPanel({
+  onBack,
+  initialScreen = "select",
+}: WithdrawalPanelProps) {
+  const [screen, setScreen] = useState<Screen>(initialScreen);
 
   if (screen === "upi") {
     return <UpiFormScreen onBack={() => setScreen("select")} />;
@@ -741,10 +935,15 @@ export function WithdrawalPanel({ onBack }: WithdrawalPanelProps) {
     return <BankFormScreen onBack={() => setScreen("select")} />;
   }
 
+  if (screen === "history") {
+    return <WithdrawalHistoryScreen onBack={() => setScreen("select")} />;
+  }
+
   return (
     <SelectMethodScreen
       onBack={onBack}
       onSelect={(method) => setScreen(method)}
+      onViewHistory={() => setScreen("history")}
     />
   );
 }

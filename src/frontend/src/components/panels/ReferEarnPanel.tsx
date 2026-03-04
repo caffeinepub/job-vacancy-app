@@ -83,9 +83,13 @@ const WA_MESSAGE = `Bhai, Job Finder app try kar! Isme sabhi New aur Old vacanci
 
 interface ReferEarnPanelProps {
   onWithdraw?: () => void;
+  onViewHistory?: () => void;
 }
 
-export function ReferEarnPanel({ onWithdraw }: ReferEarnPanelProps) {
+export function ReferEarnPanel({
+  onWithdraw,
+  onViewHistory,
+}: ReferEarnPanelProps) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
@@ -381,6 +385,8 @@ export function ReferEarnPanel({ onWithdraw }: ReferEarnPanelProps) {
             </Button>
             <Button
               variant="outline"
+              onClick={onViewHistory}
+              data-ocid="refer.view_history.button"
               className="flex-1 h-10 rounded-xl font-semibold border-border"
             >
               View History

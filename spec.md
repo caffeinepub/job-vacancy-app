@@ -1,48 +1,57 @@
 # Job Vacancy App
 
 ## Current State
-A job board app for India. Features:
-- Sticky header with logo and nav links
-- Hero section with stats
-- Filter bar (search, state, district, job type)
-- Job card grid with Apply Now modal
-- Footer
 
-No side menu or user authentication exists.
+The Refer & Earn panel (`ReferEarnPanel.tsx`) has a Wallet card (Panel 4) with two buttons side-by-side:
+- **Withdraw** -- correctly calls `onWithdraw()` which navigates to the `withdrawal` panel
+- **View History** -- has NO `onClick` handler, so clicking it does nothing
+
+The `WithdrawalPanel.tsx` manages three internal screens via local state: `select`, `upi`, `bank`. Withdrawal requests are saved to `localStorage` under key `jf_withdrawal_requests` as an array of `UpiRequest | BankRequest` objects, each with:
+- `user_id`, `withdrawal_method` ("UPI" | "BANK"), `withdrawal_amount`, `request_date`
+- UPI: `upi_id`, `account_holder_name`
+- BANK: `account_holder_name`, `ifsc_code`, `account_number`
+
+`PanelSheet.tsx` handles navigation between panels using `onNavigate(panelId)`. The `withdrawal` panel is already registered in `PANEL_META`. Navigation from Refer & Earn → Withdrawal already works.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Hamburger menu button in the header (top-left or alongside logo)
-- Slide-out side drawer (from the left) with 8 menu items:
-  1. Sign Up / Login -- opens a modal or panel for auth (simulated UI)
-  2. Themes -- lets user switch between light/dark/system themes
-  3. Locations -- shows a panel listing all states/districts covered
-  4. Your ID -- shows a "My Profile" card (placeholder with name/email if logged in, else prompt to sign up)
-  5. New Vacancy -- form to post a new job listing (title, company, location, type, salary, description)
-  6. Old Vacancy -- list of previously posted vacancies (placeholder data)
-  7. Draft Vacancy -- list of draft/unsaved vacancies (placeholder data)
-  8. Add Post -- simple form to compose a general job-related post/announcement
-- Close button and backdrop overlay for the drawer
-- Active menu item highlight
+- A `WithdrawalHistoryScreen` component inside `WithdrawalPanel.tsx` — a new internal screen (`history`) that:
+  - Reads all records from `localStorage["jf_withdrawal_requests"]`
+  - Displays each request as a card row with: Date (formatted), Amount (₹), Method (UPI / Bank), Status badge (Pending by default since no approval system exists yet)
+  - Shows "No withdrawal history available." empty state when the array is empty
+  - Has a Back button (returns to `select` screen)
+  - Is fully scrollable on mobile
 
 ### Modify
-- Header: add a menu toggle button (hamburger icon) on the left side
-- App layout: wrap in a context/state that tracks open drawer + active section
+- `WithdrawalPanel.tsx`: Add `"history"` to the `Screen` type union. Add `history` branch to render `WithdrawalHistoryScreen`. Pass `onViewHistory` callback into `SelectMethodScreen`.
+- `ReferEarnPanel.tsx`: Add `onViewHistory?: () => void` prop. Wire the "View History" button `onClick` to call `onViewHistory()`.
+- `PanelSheet.tsx`: Pass `onViewHistory` to `ReferEarnPanel` — it should call `onNavigate?.("withdrawal-history")`. OR simpler: keep history as an internal screen within `WithdrawalPanel` itself. The cleanest approach is to add a `initialScreen` prop to `WithdrawalPanel` so when called from "View History" it opens directly on the `history` screen. Then add a `withdrawal-history` navigate shortcut or pass `onViewHistory` to `ReferEarnPanel` that opens `withdrawal` panel with history screen.
+
+  **Chosen approach**: Add `onViewHistory` prop to `ReferEarnPanel` that navigates to `withdrawal` panel, and add `initialScreen` prop to `WithdrawalPanel` so PanelSheet can pass `"history"` when coming from View History. Track `viewHistoryMode` in PanelSheet state.
 
 ### Remove
 - Nothing removed
 
 ## Implementation Plan
-1. Create `SideMenu.tsx` component: slide-in drawer with framer-motion, backdrop, close button, 8 menu items with icons
-2. Create panel components for each menu item:
-   - `AuthPanel.tsx` (Sign Up / Login form)
-   - `ThemesPanel.tsx` (light/dark/system toggle)
-   - `LocationsPanel.tsx` (list of states and districts)
-   - `YourIdPanel.tsx` (user profile placeholder)
-   - `NewVacancyPanel.tsx` (post a new job form)
-   - `OldVacancyPanel.tsx` (list of past vacancies)
-   - `DraftVacancyPanel.tsx` (list of draft vacancies)
-   - `AddPostPanel.tsx` (compose a post form)
-3. Add theme context in `main.tsx` or a new `ThemeProvider`
-4. Update `App.tsx` to include the hamburger button and `SideMenu` with panel rendering
+
+1. **`WithdrawalPanel.tsx`**:
+   - Add `"history"` to `Screen` type
+   - Add optional `initialScreen?: Screen` prop to `WithdrawalPanel`
+   - Initialize `screen` state with `initialScreen ?? "select"`
+   - Build `WithdrawalHistoryScreen` component:
+     - Reads `jf_withdrawal_requests` from localStorage on mount
+     - Renders scrollable list of history cards (Date, Amount, Method chip, Status badge "Pending")
+     - Empty state: "No withdrawal history available."
+     - Back button → goes to `select` screen
+   - Add `history` branch in root render
+
+2. **`ReferEarnPanel.tsx`**:
+   - Add `onViewHistory?: () => void` prop alongside existing `onWithdraw`
+   - Wire `onClick={onViewHistory}` to the "View History" button
+
+3. **`PanelSheet.tsx`**:
+   - Add local state `withdrawalInitialScreen: "select" | "history"` (default `"select"`)
+   - Pass `onViewHistory` to `ReferEarnPanel` that sets `withdrawalInitialScreen = "history"` then calls `onNavigate?.("withdrawal")`
+   - Pass `initialScreen={withdrawalInitialScreen}` to `WithdrawalPanel`
+   - Reset `withdrawalInitialScreen` back to `"select"` when withdrawal panel closes (onBack)

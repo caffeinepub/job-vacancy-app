@@ -6,6 +6,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useState } from "react";
 import type { JobListing } from "../data/jobs";
 import type { PanelId } from "./SideMenu";
 import type { AuthUser } from "./panels/AuthPanel";
@@ -90,9 +91,17 @@ export function PanelSheet({
 }: PanelSheetProps) {
   const isOpen = activePanel !== null;
   const meta = activePanel ? PANEL_META[activePanel] : null;
+  const [withdrawalInitialScreen, setWithdrawalInitialScreen] = useState<
+    "select" | "history"
+  >("select");
+
+  function handleSheetClose() {
+    setWithdrawalInitialScreen("select");
+    onClose();
+  }
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && handleSheetClose()}>
       <SheetContent
         side="right"
         className="w-full sm:w-[480px] p-0 flex flex-col"
@@ -129,11 +138,26 @@ export function PanelSheet({
                 className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
                 style={{ WebkitOverflowScrolling: "touch" }}
               >
-                <ReferEarnPanel onWithdraw={() => onNavigate?.("withdrawal")} />
+                <ReferEarnPanel
+                  onWithdraw={() => {
+                    setWithdrawalInitialScreen("select");
+                    onNavigate?.("withdrawal");
+                  }}
+                  onViewHistory={() => {
+                    setWithdrawalInitialScreen("history");
+                    onNavigate?.("withdrawal");
+                  }}
+                />
               </div>
             )}
             {activePanel === "withdrawal" && (
-              <WithdrawalPanel onBack={() => onNavigate?.("refer-earn")} />
+              <WithdrawalPanel
+                initialScreen={withdrawalInitialScreen}
+                onBack={() => {
+                  setWithdrawalInitialScreen("select");
+                  onNavigate?.("refer-earn");
+                }}
+              />
             )}
             {activePanel === "themes" && (
               <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
