@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import {
   Briefcase,
+  Download,
   Facebook,
   Instagram,
   Linkedin,
@@ -10,9 +11,10 @@ import {
   TrendingUp,
   Twitter,
   Users,
+  X,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { JobType } from "./backend.d";
 import { VacancyStatus } from "./backend.d";
 import { ApplyModal } from "./components/ApplyModal";
@@ -44,6 +46,13 @@ const STATS = [
   { icon: TrendingUp, label: "Industries", value: "7" },
 ];
 
+// Extend Window to include BeforeInstallPromptEvent
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+  prompt(): Promise<void>;
+}
+
 export default function App() {
   // ── Onboarding state (must be before any early return) ──
   const [onboardingDone, setOnboardingDone] = useState<boolean>(
@@ -62,7 +71,6 @@ export default function App() {
     const createdAt =
       Number(localStorage.getItem("jf_user_created_at")) || Date.now();
     if (!name) return null;
-    // Require at least one contact method
     if (!email && !phone) return null;
     return { name, email, phone, userId, authMethod, createdAt };
   });
@@ -94,6 +102,39 @@ export default function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activePanel, setActivePanel] = useState<PanelId>(null);
 
+  // ── PWA install prompt ──
+  const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem("jf_pwa_dismissed");
+    if (dismissed) return;
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      deferredPromptRef.current = e as BeforeInstallPromptEvent;
+      setShowInstallBanner(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  async function handleInstallClick() {
+    const prompt = deferredPromptRef.current;
+    if (!prompt) return;
+    await prompt.prompt();
+    const { outcome } = await prompt.userChoice;
+    if (outcome === "accepted") {
+      setShowInstallBanner(false);
+    }
+    deferredPromptRef.current = null;
+  }
+
+  function handleDismissBanner() {
+    setShowInstallBanner(false);
+    localStorage.setItem("jf_pwa_dismissed", "true");
+  }
+
   // ESC key to close drawer
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -111,7 +152,6 @@ export default function App() {
 
   const allJobs = useMemo(() => [...postedJobs, ...SAMPLE_JOBS], [postedJobs]);
 
-  // Base filtered jobs applying global search + jobType filter
   const baseFilteredJobs = useMemo(() => {
     const query = filters.search.toLowerCase().trim();
     return allJobs.filter((job) => {
@@ -131,7 +171,6 @@ export default function App() {
     });
   }, [filters, allJobs]);
 
-  // Panel 1: Indian New Vacancies — all new, sorted by datePosted desc
   const newIndiaJobs = useMemo(
     () =>
       baseFilteredJobs
@@ -140,7 +179,6 @@ export default function App() {
     [baseFilteredJobs],
   );
 
-  // Panel 3: Indian Old Vacancies — all old, sorted by datePosted desc
   const oldIndiaJobs = useMemo(
     () =>
       baseFilteredJobs
@@ -159,7 +197,6 @@ export default function App() {
     setActivePanel(panel);
   }
 
-  // Show onboarding overlay on first launch
   if (!onboardingDone) {
     return <OnboardingFlow onComplete={handleOnboardingComplete} />;
   }
@@ -191,11 +228,51 @@ export default function App() {
         onNavigate={(panel) => setActivePanel(panel)}
       />
 
+      {/* ──────────────── PWA Install Banner ──────────────── */}
+      {showInstallBanner && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-3 px-4 py-3 shadow-lg"
+          style={{ background: "#1e3a8a" }}
+          data-ocid="pwa.install_banner"
+        >
+          <img
+            src="/assets/generated/pwa-icon-192.dim_192x192.png"
+            alt="JobFinder icon"
+            className="w-10 h-10 rounded-xl flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-white text-sm font-semibold leading-tight">
+              Install JobFinder
+            </p>
+            <p className="text-blue-200 text-xs leading-tight">
+              Add to home screen for quick access
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleInstallClick}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-blue-900 text-xs font-bold flex-shrink-0 active:scale-95 transition-transform"
+            data-ocid="pwa.install_button"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Install
+          </button>
+          <button
+            type="button"
+            onClick={handleDismissBanner}
+            className="w-7 h-7 flex items-center justify-center rounded-full text-blue-200 hover:text-white flex-shrink-0"
+            aria-label="Dismiss install prompt"
+            data-ocid="pwa.dismiss_button"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* ──────────────── Header / Nav ──────────────── */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border shadow-xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            {/* Hamburger Menu Button */}
             <button
               type="button"
               onClick={() => setIsDrawerOpen(true)}
@@ -203,11 +280,11 @@ export default function App() {
               aria-label="Open menu"
               aria-expanded={isDrawerOpen}
               aria-controls="side-menu"
+              data-ocid="header.menu_button"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Logo */}
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                 <Briefcase
@@ -258,7 +335,6 @@ export default function App() {
             "linear-gradient(135deg, oklch(0.25 0.08 258) 0%, oklch(0.32 0.1 255) 50%, oklch(0.2 0.06 270) 100%)",
         }}
       >
-        {/* Decorative grid pattern */}
         <div
           className="absolute inset-0 opacity-10"
           style={{
@@ -267,7 +343,6 @@ export default function App() {
             backgroundSize: "40px 40px",
           }}
         />
-        {/* Glow accents */}
         <div className="absolute top-0 right-1/4 w-64 h-64 rounded-full bg-blue-500/20 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 w-48 h-48 rounded-full bg-cyan-500/15 blur-3xl pointer-events-none" />
 
@@ -313,7 +388,6 @@ export default function App() {
             </p>
           </motion.div>
 
-          {/* Stats row */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -341,7 +415,6 @@ export default function App() {
         id="jobs"
         className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-10"
       >
-        {/* Filter Bar */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -355,7 +428,6 @@ export default function App() {
           />
         </motion.div>
 
-        {/* 2x2 Home Grid — Quick Vacancy Overview */}
         <HomeGrid
           newIndiaJobs={newIndiaJobs}
           oldIndiaJobs={oldIndiaJobs}
@@ -407,18 +479,18 @@ export default function App() {
               </ul>
             </div>
           </div>
+
           {/* Follow Us Section */}
           <div className="border-t border-border mt-8 pt-6">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center mb-4">
               Follow Us
             </p>
             <div className="flex items-center justify-center gap-4">
-              {/* Instagram */}
               <a
                 href="https://www.instagram.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110"
                 style={{
                   background:
                     "linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)",
@@ -427,45 +499,41 @@ export default function App() {
               >
                 <Instagram className="w-5 h-5 text-white" />
               </a>
-              {/* Facebook */}
               <a
                 href="https://www.facebook.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110"
                 style={{ backgroundColor: "#1877F2" }}
                 aria-label="Follow us on Facebook"
               >
                 <Facebook className="w-5 h-5 text-white" />
               </a>
-              {/* Twitter / X */}
               <a
                 href="https://twitter.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110"
                 style={{ backgroundColor: "#000000" }}
                 aria-label="Follow us on Twitter / X"
               >
                 <Twitter className="w-5 h-5 text-white" />
               </a>
-              {/* Telegram */}
               <a
                 href="https://telegram.org/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110"
                 style={{ backgroundColor: "#2AABEE" }}
                 aria-label="Follow us on Telegram"
               >
                 <Send className="w-5 h-5 text-white" />
               </a>
-              {/* LinkedIn */}
               <a
                 href="https://www.linkedin.com/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
+                className="w-11 h-11 rounded-full flex items-center justify-center transition-transform hover:scale-110"
                 style={{ backgroundColor: "#0A66C2" }}
                 aria-label="Follow us on LinkedIn"
               >

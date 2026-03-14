@@ -1,0 +1,40 @@
+{
+  "name": "JobFinder India",
+  "short_name": "JobFinder",
+  "description": "Find jobs across India — from Jammu & Kashmir to Kanyakumari",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1e3a8a",
+  "theme_color": "#1e3a8a",
+  "lang": "en-IN",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/assets/generated/pwa-icon-192.dim_192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/generated/pwa-icon-192.dim_192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/generated/pwa-icon-512.dim_512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/generated/pwa-icon-512.dim_512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["jobs", "business", "productivity"],
+  "prefer_related_applications": false
+}
