@@ -46,11 +46,17 @@ const STATS = [
   { icon: TrendingUp, label: "Industries", value: "7" },
 ];
 
-// Extend Window to include BeforeInstallPromptEvent
+// Extend Window to include BeforeInstallPromptEvent and our early capture
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
   readonly userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
   prompt(): Promise<void>;
+}
+
+declare global {
+  interface Window {
+    __pwaInstallPrompt: BeforeInstallPromptEvent | null;
+  }
 }
 
 export default function App() {
@@ -107,16 +113,40 @@ export default function App() {
   const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   useEffect(() => {
-    const dismissed = localStorage.getItem("jf_pwa_dismissed");
-    if (dismissed) return;
+    // Always clear the dismissed flag so every fresh deploy shows the prompt again
+    localStorage.removeItem("jf_pwa_dismissed");
 
-    const handler = (e: Event) => {
+    // CRITICAL: Check if Chrome fired beforeinstallprompt before React mounted.
+    // index.html captures it early in window.__pwaInstallPrompt.
+    if (window.__pwaInstallPrompt) {
+      deferredPromptRef.current = window.__pwaInstallPrompt;
+      setShowInstallBanner(true);
+      return;
+    }
+
+    // If not captured yet, listen for both the original event and the custom
+    // re-dispatch from index.html's early listener.
+    function onPromptAvailable() {
+      if (window.__pwaInstallPrompt && !deferredPromptRef.current) {
+        deferredPromptRef.current = window.__pwaInstallPrompt;
+        setShowInstallBanner(true);
+      }
+    }
+
+    function onBeforeInstallPrompt(e: Event) {
       e.preventDefault();
       deferredPromptRef.current = e as BeforeInstallPromptEvent;
+      window.__pwaInstallPrompt = e as BeforeInstallPromptEvent;
       setShowInstallBanner(true);
+    }
+
+    window.addEventListener("jf-pwa-ready", onPromptAvailable);
+    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener("jf-pwa-ready", onPromptAvailable);
+      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
     };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
   async function handleInstallClick() {
@@ -126,6 +156,7 @@ export default function App() {
     const { outcome } = await prompt.userChoice;
     if (outcome === "accepted") {
       setShowInstallBanner(false);
+      window.__pwaInstallPrompt = null;
     }
     deferredPromptRef.current = null;
   }

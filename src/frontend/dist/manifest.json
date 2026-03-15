@@ -1,7 +1,7 @@
 {
-  "name": "JobFinder India",
+  "name": "JobFinder",
   "short_name": "JobFinder",
-  "description": "Find jobs across India — from Jammu & Kashmir to Kanyakumari",
+  "description": "Find the latest government and private job vacancies easily.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -9,6 +9,7 @@
   "theme_color": "#1e3a8a",
   "lang": "en-IN",
   "scope": "/",
+  "id": "/",
   "icons": [
     {
       "src": "/assets/generated/pwa-icon-192.dim_192x192.png",
@@ -36,5 +37,6 @@
     }
   ],
   "categories": ["jobs", "business", "productivity"],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "screenshots": []
 }

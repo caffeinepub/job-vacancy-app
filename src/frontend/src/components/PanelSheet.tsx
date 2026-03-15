@@ -76,6 +76,33 @@ interface PanelSheetProps {
   onNavigate?: (panel: PanelId) => void;
 }
 
+/**
+ * NativeScroll — replaces Radix ScrollArea for panels that need reliable
+ * scrolling in Android WebView / mobile PWA.
+ *
+ * Radix ScrollArea hides overflow on its outer container and uses a JS-driven
+ * viewport div whose height WebView sometimes miscalculates, cutting off
+ * content at the bottom. A plain div with overflow-y:auto + the vendor
+ * -webkit-overflow-scrolling:touch property works everywhere.
+ */
+function NativeScroll({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+      style={{
+        // Momentum scrolling on iOS Safari & old Android WebView
+        WebkitOverflowScrolling: "touch",
+        // Extra bottom padding so content isn't hidden behind nav bars
+        paddingBottom: "env(safe-area-inset-bottom, 16px)",
+        // Ensure the div can actually grow to fill the sheet
+        height: "100%",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function PanelSheet({
   activePanel,
   onClose,
@@ -102,9 +129,16 @@ export function PanelSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && handleSheetClose()}>
+      {/*
+       * SheetContent height fix for WebView:
+       * - "h-full" forces the sheet to fill the full viewport height so child
+       *   flex containers can resolve their own heights correctly.
+       * - Without this, flex children that use "flex-1" or "min-h-0" cannot
+       *   calculate a finite height and overflow is clipped.
+       */}
       <SheetContent
         side="right"
-        className="w-full sm:w-[480px] p-0 flex flex-col"
+        className="w-full sm:w-[480px] p-0 flex flex-col h-full"
       >
         {meta && (
           <SheetHeader className="sr-only">
@@ -112,7 +146,8 @@ export function PanelSheet({
             <SheetDescription>{meta.description}</SheetDescription>
           </SheetHeader>
         )}
-        {/* Panels that manage their own native scroll (no ScrollArea) */}
+
+        {/* ── Panels with their own native scroll ── */}
         {activePanel === "new-vacancy" ||
         activePanel === "old-vacancy" ||
         activePanel === "draft-vacancy" ||
@@ -166,7 +201,20 @@ export function PanelSheet({
             )}
           </div>
         ) : (
-          <ScrollArea className="flex-1">
+          /*
+           * ── Panels that previously used Radix ScrollArea ──
+           *
+           * "your-id" was the main culprit: ScrollArea wraps content in a
+           * viewport div with overflow:scroll but the outer container has
+           * overflow:hidden. In Android WebView the outer container's height
+           * collapses (no explicit height on SheetContent chain), so the
+           * viewport div also collapses and content appears cut off.
+           *
+           * Fix: use NativeScroll (plain overflow-y:auto div) for your-id,
+           * auth, and locations. Radix ScrollArea is kept only where its
+           * styled scrollbar is explicitly needed in the future.
+           */
+          <NativeScroll>
             {activePanel === "auth" && (
               <AuthPanel
                 onLogin={(u) => {
@@ -196,7 +244,7 @@ export function PanelSheet({
                 onLogout={onLogout}
               />
             )}
-          </ScrollArea>
+          </NativeScroll>
         )}
       </SheetContent>
     </Sheet>
