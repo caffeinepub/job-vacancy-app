@@ -267,7 +267,7 @@ export default function App() {
           data-ocid="pwa.install_banner"
         >
           <img
-            src="/assets/generated/app-icon-192.dim_192x192.png"
+            src="/assets/generated/app-icon-jobfinder.dim_512x512.png"
             alt="JobFinder icon"
             className="w-10 h-10 rounded-xl flex-shrink-0"
           />

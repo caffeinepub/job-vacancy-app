@@ -21,14 +21,14 @@
     <link rel="manifest" href="/manifest.json" />
 
     <!-- App Icons -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/assets/generated/app-icon-192.dim_192x192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/assets/generated/app-icon-512.dim_512x512.png" />
-    <link rel="apple-touch-icon" href="/assets/generated/app-icon-192.dim_192x192.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/generated/app-icon-jobfinder.dim_512x512.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/generated/app-icon-jobfinder.dim_512x512.png" />
+    <link rel="apple-touch-icon" href="/assets/generated/app-icon-jobfinder.dim_512x512.png" />
 
     <!-- Open Graph -->
     <meta property="og:title" content="JobFinder" />
     <meta property="og:description" content="Find the latest government and private job vacancies easily." />
-    <meta property="og:image" content="/assets/generated/app-icon-512.dim_512x512.png" />
+    <meta property="og:image" content="/assets/generated/app-icon-jobfinder.dim_512x512.png" />
     <meta property="og:type" content="website" />
 
     <!-- Fonts -->
@@ -49,8 +49,8 @@
         console.log('[PWA] beforeinstallprompt captured early');
       });
     </script>
-    <script type="module" crossorigin src="/assets/index-Bkiam39e.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-B7xqXS2T.css">
+    <script type="module" crossorigin src="/assets/index-BGKqcj81.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Bm2nlqol.css">
   </head>
   <body>
     <div id="root"></div>
@@ -76,12 +76,11 @@
         if (!('serviceWorker' in navigator)) return;
 
         var SW_CODE = `
-const CACHE_NAME = 'jobfinder-v8';
+const CACHE_NAME = 'jobfinder-v10';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/assets/generated/app-icon-192.dim_192x192.png',
-  '/assets/generated/app-icon-512.dim_512x512.png',
+  '/assets/generated/app-icon-jobfinder.dim_512x512.png',
 ];
 
 self.addEventListener('message', (event) => {

@@ -1,9 +1,8 @@
-const CACHE_NAME = 'jobfinder-v5';
+const CACHE_NAME = 'jobfinder-v10';
 const STATIC_ASSETS = [
   '/',
   '/assets/manifest.json',
-  '/assets/generated/app-icon-192.dim_192x192.png',
-  '/assets/generated/app-icon-512.dim_512x512.png',
+  '/assets/generated/app-icon-jobfinder.dim_512x512.png',
 ];
 
 // Respond to SKIP_WAITING message from page
