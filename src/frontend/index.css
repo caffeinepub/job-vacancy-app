@@ -77,14 +77,14 @@
   Caffeine's deployment pipeline scans compiled CSS for url() references
   and deploys the matched files from public/. Without these rules the
   192 px and 512 px icon PNGs are never uploaded to the ICP asset canister
-  and every fetch returns index.html, which breaks Chrome’s installability
+  and every fetch returns index.html, which breaks Chrome's installability
   check. The .pwa-icon-preload class is never applied to any element, so
   there is zero visual or performance impact.
 */
 .pwa-icon-preload {
   background-image:
-    url("/assets/generated/pwa-icon-192.dim_192x192.png"),
-    url("/assets/generated/pwa-icon-512.dim_512x512.png");
+    url("/assets/generated/app-icon-192.dim_192x192.png"),
+    url("/assets/generated/app-icon-512.dim_512x512.png");
   display: none;
 }
 
