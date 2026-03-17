@@ -4,31 +4,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>JobFinder</title>
     <meta name="description" content="Find the latest government and private job vacancies easily." />
-    <meta name="theme-color" content="#1e3a8a" />
+    <meta name="theme-color" content="#0D47A1" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="JobFinder" />
     <meta name="application-name" content="JobFinder" />
-    <meta name="msapplication-TileColor" content="#1e3a8a" />
+    <meta name="msapplication-TileColor" content="#0D47A1" />
 
-    <!--
-      PWA Manifest — served at /manifest.json
-      The manifest is emitted as a Rollup build artifact (not a public/ copy)
-      so Caffeine's deployment pipeline includes it in the ICP asset canister.
-      A second copy at /assets/manifest.json is kept for backward compatibility.
-    -->
     <link rel="manifest" href="/manifest.json" />
 
     <!-- App Icons -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/assets/generated/pwa-icon-512.dim_512x512.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/assets/generated/pwa-icon-512.dim_512x512.png" />
-    <link rel="apple-touch-icon" href="/assets/generated/pwa-icon-512.dim_512x512.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/generated/icon-192.dim_192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/generated/icon-512.dim_512x512.png" />
+    <link rel="apple-touch-icon" href="/assets/generated/icon-512.dim_512x512.png" />
 
     <!-- Open Graph -->
     <meta property="og:title" content="JobFinder" />
     <meta property="og:description" content="Find the latest government and private job vacancies easily." />
-    <meta property="og:image" content="/assets/generated/pwa-icon-512.dim_512x512.png" />
+    <meta property="og:image" content="/assets/generated/icon-512.dim_512x512.png" />
     <meta property="og:type" content="website" />
 
     <!-- Fonts -->
@@ -36,10 +30,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Pacifico&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <!--
-      Capture beforeinstallprompt as early as possible, before React mounts.
-      Chrome can fire this very early and a late-registered listener misses it.
-    -->
     <script>
       window.__pwaInstallPrompt = null;
       window.addEventListener('beforeinstallprompt', function(e) {
@@ -54,32 +44,17 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 
-    <!--
-      Service Worker — Blob URL approach
-      ====================================
-      The Caffeine deployment pipeline does NOT upload public/-root files
-      (sw.js) to the ICP asset canister; those routes fall back to index.html
-      and Chrome rejects them. We work around this by inlining the entire SW
-      code here as a JS template literal, creating a Blob, and registering
-      the resulting blob: URL.
-
-      Why a blob: URL works for scope /:
-        A blob URL has the form  blob:https://example.com/<uuid>
-        Its path component is just  /<uuid>  (no subdirectory).
-        The Service Worker spec defines the default scope as the
-        "directory" of the script URL, which for /<uuid> is /.
-        So Chrome gives the SW full-origin scope with no extra headers.
-    -->
     <script>
       (function () {
         if (!('serviceWorker' in navigator)) return;
 
         var SW_CODE = `
-const CACHE_NAME = 'jobfinder-v11';
+const CACHE_NAME = 'jobfinder-v12';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/assets/generated/pwa-icon-512.dim_512x512.png',
+  '/assets/generated/icon-192.dim_192x192.png',
+  '/assets/generated/icon-512.dim_512x512.png',
 ];
 
 self.addEventListener('message', (event) => {
