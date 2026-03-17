@@ -83,8 +83,8 @@
 */
 .pwa-icon-preload {
   background-image:
-    url("/assets/generated/pwa-icon-192x192.dim_192x192.png"),
-    url("/assets/generated/pwa-icon-512x512.dim_512x512.png");
+    url("/assets/generated/pwa-icon-192.dim_192x192.png"),
+    url("/assets/generated/pwa-icon-512.dim_512x512.png");
   display: none;
 }
 
