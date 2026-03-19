@@ -23,6 +23,7 @@ import { HomeGrid } from "./components/HomeGrid";
 import { OnboardingFlow } from "./components/OnboardingFlow";
 import { PanelSheet } from "./components/PanelSheet";
 import { type PanelId, SideMenu } from "./components/SideMenu";
+import { SplashScreen } from "./components/SplashScreen";
 import type { AuthUser } from "./components/panels/AuthPanel";
 import {
   applyStoredFont,
@@ -60,6 +61,9 @@ declare global {
 }
 
 export default function App() {
+  // ── Splash screen state ──
+  const [showSplash, setShowSplash] = useState(true);
+
   // ── Onboarding state (must be before any early return) ──
   const [onboardingDone, setOnboardingDone] = useState<boolean>(
     () => localStorage.getItem("jf_onboarding_done") === "true",
@@ -228,6 +232,11 @@ export default function App() {
     setActivePanel(panel);
   }
 
+  // Show splash screen first (before onboarding check)
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
+
   if (!onboardingDone) {
     return <OnboardingFlow onComplete={handleOnboardingComplete} />;
   }
@@ -267,7 +276,7 @@ export default function App() {
           data-ocid="pwa.install_banner"
         >
           <img
-            src="/assets/generated/pwa-icon-512.dim_512x512.png"
+            src="/assets/uploads/1773855575468-2-2.png"
             alt="JobFinder icon"
             className="w-10 h-10 rounded-xl flex-shrink-0"
           />
@@ -576,7 +585,7 @@ export default function App() {
           {/* Copyright Row */}
           <div className="border-t border-border mt-6 pt-5 flex flex-col items-center text-center">
             <p className="text-xs font-normal text-muted-foreground">
-              © 2026 JobFinder India. All rights reserved.
+              © {new Date().getFullYear()} JobFinder India. All rights reserved.
             </p>
             <p className="text-xs font-normal text-muted-foreground mt-1">
               Developed by Saurabh_Anshul_

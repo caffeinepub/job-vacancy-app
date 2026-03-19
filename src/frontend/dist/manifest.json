@@ -12,16 +12,28 @@
   "id": "/",
   "icons": [
     {
-      "src": "/assets/generated/icon-192.dim_192x192.png",
+      "src": "/assets/uploads/1773855575468-1-1.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/assets/generated/icon-512.dim_512x512.png",
+      "src": "/assets/uploads/1773855575468-1-1.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/uploads/1773855575468-2-2.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/uploads/1773855575468-2-2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["jobs", "business", "productivity"],

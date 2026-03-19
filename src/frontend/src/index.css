@@ -82,8 +82,8 @@
   there is zero visual or performance impact.
 */
 .pwa-icon-preload {
-  background-image: url("/assets/generated/pwa-icon-192.dim_192x192.png"),
-    url("/assets/generated/pwa-icon-512.dim_512x512.png");
+  background-image: url("/assets/uploads/1773855575468-1-1.png"),
+    url("/assets/uploads/1773855575468-2-2.png");
   display: none;
 }
 
