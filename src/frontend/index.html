@@ -25,10 +25,109 @@
     <meta property="og:image" content="/assets/generated/pwa-icon-512.dim_512x512.png" />
     <meta property="og:type" content="website" />
 
+    <!-- Preload splash logo for instant rendering -->
+    <link rel="preload" as="image" href="/assets/uploads/1773855575468-1.png" />
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Pacifico&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Pacifico&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Inline splash screen styles: render before any JS -->
+    <style>
+      #native-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(160deg, #0a1628 0%, #0D47A1 55%, #1a237e 100%);
+        font-family: 'Poppins', system-ui, sans-serif;
+        overflow: hidden;
+        animation: nativeSplashIn 0.35s ease-out forwards;
+      }
+      @keyframes nativeSplashIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+      @keyframes nativeSplashOut {
+        from { opacity: 1; }
+        to   { opacity: 0; }
+      }
+      #native-splash.hiding {
+        animation: nativeSplashOut 0.4s ease-in forwards;
+        pointer-events: none;
+      }
+      #native-splash-glow1 {
+        position: absolute;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(66,153,225,0.25) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      #native-splash-glow2 {
+        position: absolute;
+        bottom: 25%;
+        right: 15%;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(99,179,237,0.15) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      #native-splash-logo {
+        width: 160px;
+        height: 160px;
+        border-radius: 36px;
+        overflow: hidden;
+        filter: drop-shadow(0 0 24px rgba(147,197,253,0.6)) drop-shadow(0 8px 32px rgba(0,0,0,0.5));
+        flex-shrink: 0;
+        animation: nativeLogoIn 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;
+      }
+      @keyframes nativeLogoIn {
+        from { opacity: 0; transform: scale(0.7); }
+        to   { opacity: 1; transform: scale(1); }
+      }
+      #native-splash-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      #native-splash-name {
+        font-size: clamp(1.4rem, 5vw, 2rem);
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        color: #ffffff;
+        margin: 28px 0 0 0;
+        text-shadow: 0 0 20px rgba(147,197,253,0.8), 0 0 40px rgba(99,153,230,0.5), 0 2px 8px rgba(0,0,0,0.4);
+        font-family: 'Poppins', system-ui, sans-serif;
+        opacity: 0;
+        animation: nativeTextIn 0.5s ease-out 0.4s forwards;
+      }
+      #native-splash-tagline {
+        font-size: 0.75rem;
+        font-weight: 300;
+        letter-spacing: 0.3em;
+        color: rgba(147,197,253,0.75);
+        margin: 10px 0 0 0;
+        text-transform: uppercase;
+        text-shadow: 0 0 12px rgba(147,197,253,0.4);
+        font-family: 'Poppins', system-ui, sans-serif;
+        opacity: 0;
+        animation: nativeTextIn 0.5s ease-out 0.65s forwards;
+      }
+      @keyframes nativeTextIn {
+        from { opacity: 0; transform: translateY(16px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+    </style>
 
     <script>
       window.__pwaInstallPrompt = null;
@@ -41,6 +140,17 @@
     </script>
   </head>
   <body>
+    <!-- Native splash: renders instantly before any JS loads -->
+    <div id="native-splash">
+      <div id="native-splash-glow1"></div>
+      <div id="native-splash-glow2"></div>
+      <div id="native-splash-logo">
+        <img src="/assets/uploads/1773855575468-1.png" alt="SA Logo" />
+      </div>
+      <h1 id="native-splash-name">Saurabh_Anshul_</h1>
+      <p id="native-splash-tagline">Job Finder</p>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 
@@ -49,12 +159,13 @@
         if (!('serviceWorker' in navigator)) return;
 
         var SW_CODE = `
-const CACHE_NAME = 'jobfinder-v14';
+const CACHE_NAME = 'jobfinder-v15';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/assets/generated/pwa-icon-192.dim_192x192.png',
   '/assets/generated/pwa-icon-512.dim_512x512.png',
+  '/assets/uploads/1773855575468-1.png',
 ];
 
 self.addEventListener('message', (event) => {
